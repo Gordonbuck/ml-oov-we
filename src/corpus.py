@@ -81,6 +81,9 @@ class Corpus:
             rights = pad_sequences(train_dataset[w][1], max_len=ctx_len, value=pad, padding='post', truncating='post')
             train_dataset[w] = np.concatenate((lefts, rights), axis=1)
 
+        print(f"Train size: {len(train_dataset.keys())}")
+        print(f"Valid size: {len(valid_dataset.keys())}")
+
         self.dictionary = dictionary
         self.train_dataset = train_dataset
         self.valid_dataset = valid_dataset
@@ -102,5 +105,5 @@ class Corpus:
                 chars += [[char2idx[c] for c in word if c in char2idx]]
         contexts = torch.tensor(contexts).to(device)
         targets = torch.tensor(targets).to(device)
-        chars = torch.tensor(pad_sequences(chars, max_len=2 * self.ctx_len)).to(device)
+        chars = torch.tensor(pad_sequences(chars, max_len=2*self.ctx_len)).to(device)
         return contexts, targets, chars

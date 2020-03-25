@@ -22,15 +22,18 @@ if __name__ == '__main__':
     train(model, source_corpus, char2idx, args, device)
 
     if args.maml or args.leap:
+        print("Loading Chimera corpus")
         target_corpus = Corpus(Path(args.chimera_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
                                corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len,
                                dictionary=source_corpus.dictionary)
         model.update_embedding(target_corpus.dictionary.idx2vec)
 
     if args.maml:
+        print("MAML adaptation")
         model.load_state_dict(torch.load(os.path.join(args.save_dir, 'model.pt')))
         maml_adapt(model, source_corpus, target_corpus, char2idx, args, device)
 
     if args.leap:
+        print("LEAP adaptation")
         model.load_state_dict(torch.load(os.path.join(args.save_dir, 'model.pt')))
         leap_adapt(model, source_corpus, target_corpus, char2idx, args, device)
