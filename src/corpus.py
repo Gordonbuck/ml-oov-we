@@ -86,13 +86,16 @@ class Corpus:
 
         self.dictionary = dictionary
         self.train_dataset = train_dataset
+        self.train_words = list(train_dataset.keys())
         self.valid_dataset = valid_dataset
+        self.valid_words = list(valid_dataset.keys())
         self.w2v = w2v
         self.ctx_len = ctx_len
 
     def get_batch(self, batch_size, k_shot, char2idx, device, use_valid=False):
         dataset = self.valid_dataset if use_valid else self.train_dataset
-        sample_words = np.random.choice(dataset.keys(), batch_size)
+        words = self.valid_words if use_valid else self.train_words
+        sample_words = np.random.choice(words, batch_size)
         contexts = []
         targets = []
         chars = []
