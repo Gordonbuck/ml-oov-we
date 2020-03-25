@@ -24,11 +24,11 @@ class Corpus:
                         fields = l.rstrip('\n').split('\t')
                         corpus += [sent.replace('___', ' <unk> ').split() for sent in fields[1].split('@@')]
             corpus = np.unique(corpus)
+        print(f"Corpus shape: {corpus.shape}")
 
         word_count = defaultdict(int)
         for sent in corpus:
             for w in sent:
-                w = w.lower()
                 word_count[w] += 1
                 dictionary.add_word(w, w2v)
 
@@ -56,7 +56,6 @@ class Corpus:
                     words_train += [[w, idx]]
 
             if len(words_valid) > 0 or len(words_train) > 0:
-                sent = sent.lower().split()
                 sent_word_ids = dictionary.sent2idx(sent)
 
                 if len(words_valid) > 0:
