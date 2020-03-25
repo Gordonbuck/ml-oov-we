@@ -57,19 +57,19 @@ class Corpus:
 
             if len(words_valid) > 0 or len(words_train) > 0:
                 sent = sent.lower().split()
-                sent_ids = dictionary.sent2idx(sent)
+                sent_word_ids = dictionary.sent2idx(sent)
 
                 if len(words_valid) > 0:
                     for w, idx in words_valid:
-                        if np.count_nonzero(sent_ids[idx - ctx_len: idx + 1 + ctx_len]) > ctx_len:
-                            valid_dataset[w][0] += [sent_ids[idx - ctx_len: idx]]
-                            valid_dataset[w][1] += [sent_ids[idx + 1:  idx + 1 + ctx_len]]
+                        if np.count_nonzero(sent_word_ids[idx - ctx_len: idx + 1 + ctx_len]) > ctx_len:
+                            valid_dataset[w][0] += [sent_word_ids[idx - ctx_len: idx]]
+                            valid_dataset[w][1] += [sent_word_ids[idx + 1:  idx + 1 + ctx_len]]
 
                 if len(words_train) > 0:
                     for w, idx in words_train:
-                        if np.count_nonzero(sent_ids[idx - ctx_len: idx + 1 + ctx_len]) > ctx_len:
-                            train_dataset[w][0] += [sent_ids[idx - ctx_len: idx]]
-                            train_dataset[w][1] += [sent_ids[idx + 1:  idx + 1 + ctx_len]]
+                        if np.count_nonzero(sent_word_ids[idx - ctx_len: idx + 1 + ctx_len]) > ctx_len:
+                            train_dataset[w][0] += [sent_word_ids[idx - ctx_len: idx]]
+                            train_dataset[w][1] += [sent_word_ids[idx + 1:  idx + 1 + ctx_len]]
 
         for w in valid_dataset:
             lefts = pad_sequences(valid_dataset[w][0], max_len=ctx_len, value=pad, padding='pre', truncating='pre')
@@ -85,6 +85,7 @@ class Corpus:
         self.train_dataset = train_dataset
         self.valid_dataset = valid_dataset
         self.w2v = w2v
+        self.ctx_len = ctx_len
 
     def get_batch(self, batch_size, k_shot, char2idx, device, use_valid=False):
         dataset = self.valid_dataset if use_valid else self.train_dataset
@@ -101,5 +102,5 @@ class Corpus:
                 chars += [[char2idx[c] for c in word if c in char2idx]]
         contexts = torch.tensor(contexts).to(device)
         targets = torch.tensor(targets).to(device)
-        chars = torch.tensor(pad_sequences(chars)).to(device)
+        chars = torch.tensor(pad_sequences(chars, max_len=2 * self.ctx_len)).to(device)
         return contexts, targets, chars
