@@ -18,7 +18,6 @@ def train(model, source_corpus, char2idx, args, device):
     best_valid_cosine = -1
 
     for epoch in np.arange(args.n_epochs):
-        train_cosine = []
         valid_cosine = []
 
         model.train()
@@ -31,7 +30,6 @@ def train(model, source_corpus, char2idx, args, device):
             loss = -nn.functional.cosine_similarity(pred_emb, train_targets).mean()
             loss.backward()
             optimizer.step()
-            train_cosine += [[-loss.cpu().detach().numpy(), k_shot]]
             print(loss.item())
 
         model.eval()

@@ -121,12 +121,12 @@ class HICE(nn.Module):
         self.out = nn.Linear(n_hid, n_hid)
         self.bal = nn.Parameter(torch.ones(2) / 10.)
 
-    def update_embedding(self, w2v, init=False):
-        target_w2v = torch.tensor(w2v)
+    def update_embedding(self, idx2vec, init=False):
+        target = torch.tensor(idx2vec)
         if not init:
-            origin_w2v = self.emb.weight
-            target_w2v[:origin_w2v.shape[0]] = origin_w2v
-        self.emb.weight = nn.Parameter(target_w2v)
+            origin = self.emb.weight
+            target[:origin.shape[0]] = origin
+        self.emb.weight = nn.Parameter(target)
         self.emb.weight.requires_grad = self.emb_tunable
 
     def mask_pad(self, x, pad=0):
