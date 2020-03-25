@@ -26,7 +26,7 @@ def train(model, source_corpus, char2idx, args, device):
             loss = -nn.functional.cosine_similarity(pred_emb, train_targets).mean()
             loss.backward()
             optimizer.step()
-            print(loss.item())
+            print(f"Loss: {loss.item()}")
 
         model.eval()
         with torch.no_grad():

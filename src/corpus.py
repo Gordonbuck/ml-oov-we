@@ -36,6 +36,7 @@ class Corpus:
         for w in dictionary.word2idx:
             if w != '<unk>' and w2v_ubound > w2v.wv.vocab[w].count > w2v_lbound and word_count[w] > corpus_lbound:
                 words.append(w)
+        print(f"Number of valid words: {len(words)}")
 
         train_dataset = {}
         valid_dataset = {}
