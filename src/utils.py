@@ -25,7 +25,7 @@ class Dictionary(object):
         return [self.word2idx[w] if w in self.word2idx else 0 for w in x]
 
 
-def pad_sequences(sequences, max_len=None, padding='pre', truncating='pre', value=0., dtype=np.int32):
+def pad_sequences(sequences, max_len=None, padding='pre', truncating='pre', value=0., dtype=np.int64):
     num_samples = len(sequences)
 
     lengths = []
