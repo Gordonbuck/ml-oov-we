@@ -1,12 +1,7 @@
-from hice import *
-from data import *
-from config import parser
 from eval import *
-from gensim.models import Word2Vec
 import higher
 from leap import Leap
 import numpy as np
-from corpus import Corpus
 import os
 
 
