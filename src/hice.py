@@ -9,7 +9,7 @@ class PositionAttentionEncoding(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
         pe = torch.zeros((max_len, n_hid))
-        position = torch.arange(0., max_len)
+        position = torch.arange(0., max_len).unsqueeze(1)
         div_term = 1 / (10000 ** (torch.arange(0., n_hid, 2.) / n_hid))
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
