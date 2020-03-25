@@ -14,6 +14,7 @@ class PositionAttentionEncoding(nn.Module):
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
         pe = pe / torch.sqrt(torch.tensor(n_hid, dtype=torch.float))
+        pe = pe.unsqueeze(0).unsqueeze(0)
         self.register_buffer('pe', pe)
 
     def forward(self, x):
@@ -50,7 +51,7 @@ class MultiHeadedAttention(nn.Module):
 
         scores = torch.matmul(query, key.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d))
         if mask is not None:
-            scores = scores.masked_fill(mask == 0, -1e9)
+            scores = scores.masked_fill(mask == 0., -1e9)
         p_attn = nn.functional.softmax(scores, dim=-1)
         x = self.dropout(torch.matmul(p_attn, value))
 
@@ -122,7 +123,7 @@ class HICE(nn.Module):
         self.bal = nn.Parameter(torch.ones(2) / 10.)
 
     def update_embedding(self, idx2vec, init=False):
-        target = torch.tensor(idx2vec)
+        target = torch.tensor(idx2vec).double()
         if not init:
             origin = self.emb.weight
             target[:origin.shape[0]] = origin
@@ -130,7 +131,7 @@ class HICE(nn.Module):
         self.emb.weight.requires_grad = self.emb_tunable
 
     def mask_pad(self, x, pad=0):
-        return (x != pad).unsqueeze(-2).unsqueeze(-2)
+        return (x != pad).unsqueeze(-1).double()
 
     def get_bal(self, n_cxt):
         # shorter the context length, the higher we should rely on morphology.
@@ -139,7 +140,7 @@ class HICE(nn.Module):
     def forward(self, contexts, chars=None, pad=0):
         # contexts : B (batch size) * K (num contexts) * L (max num words in context) : contains word indices
         # vocabs : B (batch size) * W (max number of characters in target words) : contains character indices
-        masks = self.mask_pad(contexts, pad).transpose(0, 1).float()  # K * B * L
+        masks = self.mask_pad(contexts, pad).transpose(0, 1)  # K * B * L * 1
         x = self.pos_att(self.emb(contexts)).transpose(0, 1)  # K * B * L * H (word emb size)
 
         # apply SA and FFN to each context, then average over words for each context
