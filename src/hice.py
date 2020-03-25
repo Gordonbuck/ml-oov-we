@@ -13,7 +13,7 @@ class PositionAttentionEncoding(nn.Module):
         div_term = 1 / (10000 ** (torch.arange(0., n_hid, 2.) / n_hid))
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe / torch.sqrt(torch.tensor(n_hid))
+        pe = pe / torch.sqrt(torch.tensor(n_hid, dtype=torch.float))
         self.register_buffer('pe', pe)
 
     def forward(self, x):

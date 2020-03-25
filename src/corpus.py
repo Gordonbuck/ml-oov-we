@@ -22,7 +22,7 @@ class Corpus:
                     lines = f.readlines()
                     for l in lines:
                         fields = l.rstrip('\n').split('\t')
-                        corpus += [sent.replace('___', ' <unk> ').split() for sent in fields[1].split('@@')]
+                        corpus += [sent.replace('___', ' <unk> ').lower().split() for sent in fields[1].split('@@')]
             corpus = np.unique(corpus)
         print(f"Corpus shape: {corpus.shape}")
 
