@@ -1,8 +1,9 @@
-from eval import *
 import higher
 from leap import Leap
 import numpy as np
 import os
+import torch
+import torch.nn as nn
 
 
 def train(model, source_corpus, char2idx, args, device):
