@@ -9,17 +9,16 @@ class PositionAttentionEncoding(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
         pe = torch.zeros((max_len, n_hid))
-        position = torch.arange(0., max_len).unsqueeze(1)
+        position = torch.arange(0., max_len)
         div_term = 1 / (10000 ** (torch.arange(0., n_hid, 2.) / n_hid))
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
         pe = pe / torch.sqrt(torch.tensor(n_hid, dtype=torch.float))
-        pe = pe.unsqueeze(0).unsqueeze(0)
         self.register_buffer('pe', pe)
 
     def forward(self, x):
         x = (x.transpose(-2, -1) * self.pos_att).transpose(-2, -1)
-        return self.dropout(x + self.pe[:x.shape[-2]])
+        return self.dropout(x + self.pe[:x.shape[2]])
 
 
 class ResidualConnection(nn.Module):
@@ -131,7 +130,7 @@ class HICE(nn.Module):
         self.emb.weight.requires_grad = self.emb_tunable
 
     def mask_pad(self, x, pad=0):
-        return (x != pad).unsqueeze(-1).double()
+        return (x != pad).double()
 
     def get_bal(self, n_cxt):
         # shorter the context length, the higher we should rely on morphology.
@@ -140,7 +139,7 @@ class HICE(nn.Module):
     def forward(self, contexts, chars=None, pad=0):
         # contexts : B (batch size) * K (num contexts) * L (max num words in context) : contains word indices
         # vocabs : B (batch size) * W (max number of characters in target words) : contains character indices
-        masks = self.mask_pad(contexts, pad).transpose(0, 1)  # K * B * L * 1
+        masks = self.mask_pad(contexts, pad).transpose(0, 1)  # K * B * L
         x = self.pos_att(self.emb(contexts)).transpose(0, 1)  # K * B * L * H (word emb size)
 
         # apply SA and FFN to each context, then average over words for each context
