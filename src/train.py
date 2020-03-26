@@ -11,7 +11,7 @@ def train(model, source_corpus, char2idx, args, device):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr_init)
     lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=args.lr_decay, patience=args.patience,
                                                               threshold=args.threshold)
-    best_valid_cosine = -1
+    best_valid_cosine = 1
 
     for epoch in np.arange(args.n_epochs):
         valid_cosine = []
@@ -56,7 +56,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
     meta_optimizer = torch.optim.Adam(model.parameters(), lr=args.meta_lr_init)
     lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(meta_optimizer, factor=args.lr_decay,
                                                               patience=args.patience, threshold=args.threshold)
-    best_score = -1
+    best_score = 3
 
     for meta_epoch in np.arange(args.n_epochs):
         source_valid_cosine = []
@@ -118,7 +118,7 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
     meta_optimizer = torch.optim.Adam(leap.parameters(), lr=args.meta_lr_init)
     lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(meta_optimizer, factor=args.lr_decay,
                                                               patience=args.patience, threshold=args.threshold)
-    best_score = -1
+    best_score = 3
 
     for meta_epoch in np.arange(args.n_epochs):
         source_valid_cosine = []
