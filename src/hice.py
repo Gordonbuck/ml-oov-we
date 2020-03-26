@@ -129,9 +129,6 @@ class HICE(nn.Module):
         self.emb.weight = nn.Parameter(target)
         self.emb.weight.requires_grad = self.emb_tunable
 
-    def mask_pad(self, x, pad=0):
-        return (x != pad).unsqueeze(-2).unsqueeze(-1).float()
-
     def get_bal(self, n_cxt):
         # shorter the context length, the higher we should rely on morphology.
         return torch.sigmoid(self.bal[0] * n_cxt + self.bal[1])
@@ -139,27 +136,29 @@ class HICE(nn.Module):
     def forward(self, contexts, chars=None, pad=0):
         # contexts : B (batch size) * K (num contexts) * L (max num words in context) : contains word indices
         # vocabs : B (batch size) * W (max number of characters in target words) : contains character indices
-        masks = self.mask_pad(contexts, pad).transpose(0, 1)  # K * B * 1 * L * 1
-        x = self.pos_att(self.emb(contexts)).transpose(0, 1)  # K * B * L * H (word emb size)
+        x = self.pos_att(self.emb(contexts))  # B * K * L * H (word emb size)
+        mask = (contexts != pad).float()  # B * K * L
+
+        x = x.view(-1, x.size(-2), x.size(-1))  # (B * K) * L * H
+        mask = mask.unsqueeze(-2).unsqueeze(-1)
+        mask = mask.view(-1, 1, mask.size(-2), 1)  # (B * K) * 1 * L * 1
 
         # apply SA and FFN to each context, then average over words for each context
-        res = []
-        for xi, mask in zip(x, masks):
-            for layer in self.ce_layers:
-                xi = layer(xi, mask=mask)
-            mask = mask.squeeze(-3)
-            res += [torch.sum(xi * mask, dim=-2) / torch.sum(mask, dim=-2)]
-        res = torch.stack(res).transpose(0, 1)  # B * K * H
+        for layer in self.ce_layers:
+            x = layer(x, mask=mask)
+        mask = mask.squeeze(-3)
+        x = torch.sum(x * mask, dim=-2) / torch.sum(mask, dim=-2)
+        x = torch.view(contexts.size(0), contexts.size(1), -1)  # B * K * H
 
         # apply SA and FFN to aggregated context
         for layer in self.mca_layers:
-            res = layer(res)
+            x = layer(x)
 
         # weighted average with character CNN
         if self.use_morph and not (chars is None):
             cxt_weight = self.get_bal(contexts.shape[-1])
-            res = cxt_weight * res.mean(dim=1) + (1. - cxt_weight) * self.char_cnn(chars)
+            x = cxt_weight * x.mean(dim=1) + (1. - cxt_weight) * self.char_cnn(chars)
         else:
-            res = res.mean(dim=1)  # B * H
+            x = x.mean(dim=1)  # B * H
 
-        return self.out(res)
+        return self.out(x)
