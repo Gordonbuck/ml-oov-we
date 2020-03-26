@@ -44,9 +44,9 @@ class MultiHeadedAttention(nn.Module):
     def forward(self, x, mask=None):
         n_batches = x.size(0)
 
-        query = self.q(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
-        key = self.k(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
-        value = self.v(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
+        query = self.q(x).view(n_batches, -1, self.n_head, self.d).transpose(-2, -3)
+        key = self.k(x).view(n_batches, -1, self.n_head, self.d).transpose(-2, -3)
+        value = self.v(x).view(n_batches, -1, self.n_head, self.d).transpose(-2, -3)
 
         scores = torch.matmul(query, key.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d, dtype=torch.float))
         if mask is not None:
@@ -148,7 +148,7 @@ class HICE(nn.Module):
             x = layer(x, mask=mask)
         mask = mask.squeeze(-3)
         x = torch.sum(x * mask, dim=-2) / torch.sum(mask, dim=-2)
-        x = torch.view(contexts.size(0), contexts.size(1), -1)  # B * K * H
+        x = x.view(contexts.size(0), contexts.size(1), -1)  # B * K * H
 
         # apply SA and FFN to aggregated context
         for layer in self.mca_layers:
