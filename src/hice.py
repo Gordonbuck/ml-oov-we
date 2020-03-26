@@ -9,7 +9,7 @@ class PositionAttentionEncoding(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
         pe = torch.zeros((max_len, n_hid))
-        position = torch.arange(0., max_len).unsqueeze(1)
+        position = torch.arange(0., max_len).unsqueeze(-1)
         div_term = 1 / (10000 ** (torch.arange(0., n_hid, 2.) / n_hid))
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
@@ -37,16 +37,17 @@ class MultiHeadedAttention(nn.Module):
         self.d = d
         self.n_head = n_head
         self.q, self.k, self.v = (nn.Linear(n_hid, n_hid) for _ in range(3))
-        self.out = nn.Linear(d * n_head, n_hid)
+        self.out = nn.Linear(n_head * d, n_hid)
         self.attn = None
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, mask=None):
         n_batches = x.size(0)
+        n_contexts = x.size(1)
 
-        query = self.q(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
-        key = self.k(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
-        value = self.v(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
+        query = self.q(x).view(n_batches, n_contexts, -1, self.n_head, self.d).transpose(1, 2)
+        key = self.k(x).view(n_batches, n_contexts, -1, self.n_head, self.d).transpose(1, 2)
+        value = self.v(x).view(n_batches, n_contexts, -1, self.n_head, self.d).transpose(1, 2)
 
         scores = torch.matmul(query, key.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d).float())
         if mask is not None:
@@ -54,7 +55,7 @@ class MultiHeadedAttention(nn.Module):
         p_attn = nn.functional.softmax(scores, dim=-1)
         x = self.dropout(torch.matmul(p_attn, value))
 
-        x = x.transpose(1, 2).contiguous().view(n_batches, -1, self.n_head * self.d)
+        x = x.transpose(-2, -3).contiguous().view(n_batches, n_contexts, -1, self.n_head * self.d)
         return self.out(x)
 
 
@@ -130,7 +131,7 @@ class HICE(nn.Module):
         self.emb.weight.requires_grad = self.emb_tunable
 
     def mask_pad(self, x, pad=0):
-        return (x != pad).double()
+        return (x != pad).unsqueeze(-1).float()
 
     def get_bal(self, n_cxt):
         # shorter the context length, the higher we should rely on morphology.
@@ -139,16 +140,13 @@ class HICE(nn.Module):
     def forward(self, contexts, chars=None, pad=0):
         # contexts : B (batch size) * K (num contexts) * L (max num words in context) : contains word indices
         # vocabs : B (batch size) * W (max number of characters in target words) : contains character indices
-        masks = self.mask_pad(contexts, pad).transpose(0, 1)  # K * B * L
-        x = self.pos_att(self.emb(contexts)).transpose(0, 1)  # K * B * L * H (word emb size)
+        mask = self.mask_pad(contexts, pad)  # B * K * L * 1
+        x = self.pos_att(self.emb(contexts))  # B * K * L * H (word emb size)
 
         # apply SA and FFN to each context, then average over words for each context
-        res = []
-        for xi, mask in zip(x, masks):
-            for layer in self.mca_sa_layers:
-                xi = layer(xi, mask=mask)
-            res += [torch.sum(xi * mask, dim=1) / torch.sum(mask, dim=1)]
-        res = torch.stack(res).transpose(0, 1)  # B * K * H
+        for layer in self.mca_sa_layers:
+            x = layer(x, mask=mask)
+        x = torch.sum(x * mask, dim=-2) / torch.sum(mask, dim=-2) # B * K * H
 
         # apply SA and FFN to aggregated context
         for layer in self.context_aggegator:
