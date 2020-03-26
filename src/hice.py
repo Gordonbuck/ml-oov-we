@@ -48,7 +48,7 @@ class MultiHeadedAttention(nn.Module):
         key = self.k(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
         value = self.v(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
 
-        scores = torch.matmul(query, key.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d).float())
+        scores = torch.matmul(query, key.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d, dtype=torch.float))
         if mask is not None:
             scores = scores.masked_fill(mask == 0., -1e9)
         p_attn = nn.functional.softmax(scores, dim=-1)
@@ -114,15 +114,15 @@ class HICE(nn.Module):
         self.emb = nn.Embedding(len(idx2vec), n_hid)
         self.update_embedding(idx2vec, init=True)
         self.pos_att = PositionAttentionEncoding(n_hid, n_seq)
-        self.ce_sa_layers = nn.ModuleList([SelfAttentionFFN(n_head, n_hid) for _ in range(n_layer)])
-        self.mca_sa_layers = nn.ModuleList([SelfAttentionFFN(n_head, n_hid) for _ in range(n_layer)])
+        self.ce_layers = nn.ModuleList([SelfAttentionFFN(n_head, n_hid) for _ in range(n_layer)])
+        self.mca_layers = nn.ModuleList([SelfAttentionFFN(n_head, n_hid) for _ in range(n_layer)])
         if use_morph:
             self.char_cnn = CharacterCNN(n_hid)
         self.out = nn.Linear(n_hid, n_hid)
         self.bal = nn.Parameter(torch.ones(2) / 10.)
 
     def update_embedding(self, idx2vec, init=False):
-        target = torch.tensor(idx2vec).float()
+        target = torch.tensor(idx2vec, dtype=torch.float)
         if not init:
             origin = self.emb.weight
             target[:origin.shape[0]] = origin
@@ -145,14 +145,14 @@ class HICE(nn.Module):
         # apply SA and FFN to each context, then average over words for each context
         res = []
         for xi, mask in zip(x, masks):
-            for layer in self.mca_sa_layers:
+            for layer in self.ce_layers:
                 xi = layer(xi, mask=mask)
             mask = mask.squeeze(-3)
             res += [torch.sum(xi * mask, dim=-2) / torch.sum(mask, dim=-2)]
         res = torch.stack(res).transpose(0, 1)  # B * K * H
 
         # apply SA and FFN to aggregated context
-        for layer in self.context_aggegator:
+        for layer in self.mca_layers:
             res = layer(res)
 
         # weighted average with character CNN
