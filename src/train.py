@@ -26,7 +26,6 @@ def train(model, source_corpus, char2idx, args, device):
             loss = -nn.functional.cosine_similarity(pred_emb, train_targets).mean()
             loss.backward()
             optimizer.step()
-            print(f"Loss: {loss.item()}")
 
         model.eval()
         with torch.no_grad():
@@ -41,6 +40,7 @@ def train(model, source_corpus, char2idx, args, device):
 
         avg_valid = np.average(valid_cosine)
         lr_scheduler.step(avg_valid)
+        print(f"Average valid cosine: {avg_valid}")
 
         if avg_valid > best_valid_cosine:
             best_valid_cosine = avg_valid
@@ -93,13 +93,13 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                         args.batch_size, k_shot, char2idx, device, use_valid=True)
                     pred_emb = model.forward(source_valid_contexts, source_valid_vocabs)
                     loss = -nn.functional.cosine_similarity(pred_emb, source_valid_targets).mean()
-                    source_valid_cosine += [loss.cpu().detach().numpy()]
+                    source_valid_cosine += [loss.cpu().numpy()]
 
                     target_valid_contexts, target_valid_targets, target_valid_vocabs = target_corpus.get_batch(
                         args.batch_size, k_shot, char2idx, device, use_valid=True)
                     pred_emb = model.forward(target_valid_contexts, target_valid_vocabs)
                     loss = -nn.functional.cosine_similarity(pred_emb, target_valid_targets).mean()
-                    target_valid_cosine += [loss.cpu().detach().numpy()]
+                    target_valid_cosine += [loss.cpu().numpy()]
 
         avg_source_valid, avg_target_valid = np.average(source_valid_cosine), np.average(target_valid_cosine)
         score = avg_source_valid + avg_target_valid * 2
@@ -168,13 +168,13 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                         args.batch_size, k_shot, char2idx, device, use_valid=True)
                     pred_emb = model.forward(source_valid_contexts, source_valid_vocabs)
                     loss = -nn.functional.cosine_similarity(pred_emb, source_valid_targets).mean()
-                    source_valid_cosine += [loss.cpu().detach().numpy()]
+                    source_valid_cosine += [loss.cpu().numpy()]
 
                     target_valid_contexts, target_valid_targets, target_valid_vocabs = target_corpus.get_batch(
                         args.batch_size, k_shot, char2idx, device, use_valid=True)
                     pred_emb = model.forward(target_valid_contexts, target_valid_vocabs)
                     loss = -nn.functional.cosine_similarity(pred_emb, target_valid_targets).mean()
-                    target_valid_cosine += [loss.cpu().detach().numpy()]
+                    target_valid_cosine += [loss.cpu().numpy()]
 
         avg_source_valid, avg_target_valid = np.average(source_valid_cosine), np.average(target_valid_cosine)
         score = avg_source_valid + avg_target_valid * 2
