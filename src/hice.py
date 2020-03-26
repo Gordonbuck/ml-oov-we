@@ -49,9 +49,6 @@ class MultiHeadedAttention(nn.Module):
         value = self.v(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
 
         scores = torch.matmul(query, key.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d).float())
-
-        print(mask.shape, scores.shape)
-
         if mask is not None:
             scores = scores.masked_fill(mask == 0., -1e9)
         p_attn = nn.functional.softmax(scores, dim=-1)
@@ -133,7 +130,7 @@ class HICE(nn.Module):
         self.emb.weight.requires_grad = self.emb_tunable
 
     def mask_pad(self, x, pad=0):
-        return (x != pad).unsqueeze(-1).unsqueeze(-1).float()
+        return (x != pad).unsqueeze(-2).unsqueeze(-1).float()
 
     def get_bal(self, n_cxt):
         # shorter the context length, the higher we should rely on morphology.
@@ -142,7 +139,7 @@ class HICE(nn.Module):
     def forward(self, contexts, chars=None, pad=0):
         # contexts : B (batch size) * K (num contexts) * L (max num words in context) : contains word indices
         # vocabs : B (batch size) * W (max number of characters in target words) : contains character indices
-        masks = self.mask_pad(contexts, pad).transpose(0, 1)  # K * B * L * 1 * 1
+        masks = self.mask_pad(contexts, pad).transpose(0, 1)  # K * B * 1 * L * 1
         x = self.pos_att(self.emb(contexts)).transpose(0, 1)  # K * B * L * H (word emb size)
 
         # apply SA and FFN to each context, then average over words for each context
@@ -150,6 +147,7 @@ class HICE(nn.Module):
         for xi, mask in zip(x, masks):
             for layer in self.mca_sa_layers:
                 xi = layer(xi, mask=mask)
+            mask = mask.squeeze(-3)
             res += [torch.sum(xi * mask, dim=-2) / torch.sum(mask, dim=-2)]
         res = torch.stack(res).transpose(0, 1)  # B * K * H
 
