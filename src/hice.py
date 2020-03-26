@@ -136,17 +136,18 @@ class HICE(nn.Module):
     def forward(self, contexts, chars=None, pad=0):
         # contexts : B (batch size) * K (num contexts) * L (max num words in context) : contains word indices
         # vocabs : B (batch size) * W (max number of characters in target words) : contains character indices
-        x = self.pos_att(self.emb(contexts)).transpose(0, 1)  # K * B * L * H (word emb size)
-        masks = (contexts != pad).float().transpose(0, 1).unsqueeze(-2).unsqueeze(-1)  # K * B * 1 * L * 1
+        x = self.pos_att(self.emb(contexts))  # B * K * L * H (word emb size)
+        mask = (contexts != pad).float().unsqueeze(-2).unsqueeze(-1)  # B * K * 1 * L * 1
 
         # apply SA and FFN to each context, then average over words for each context
-        res = []
-        for xi, mask in zip(x, masks):
-            for layer in self.ce_layers:
-                xi = layer(xi, mask=mask)
-            mask = mask.squeeze(-3)
-            res += [torch.sum(xi * mask, dim=-2) / torch.sum(mask, dim=-2)]
-        x = torch.stack(res).transpose(0, 1)  # B * K * H
+        x = x.view(-1, x.size(-2), x.size(-1))  # (B * K) * L * H
+        mask = mask.view(-1, 1, mask.size(-2), 1)  # (B * K) * 1 * L * 1
+
+        for layer in self.ce_layers:
+            x = layer(x, mask=mask)
+        mask = mask.squeeze(-3)
+        x = torch.sum(x * mask, dim=-2) / torch.sum(mask, dim=-2)
+        x = x.view(contexts.size(0), contexts.size(1), -1)  # B * K * H
 
         # apply SA and FFN to aggregated context
         for layer in self.mca_layers:
