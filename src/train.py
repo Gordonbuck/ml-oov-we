@@ -40,9 +40,9 @@ def train(model, source_corpus, char2idx, args, device):
 
         avg_valid = np.average(valid_cosine)
         lr_scheduler.step(avg_valid)
-        print(f"Average valid cosine: {avg_valid}")
+        print(f"Average valid cosine loss: {avg_valid}")
 
-        if avg_valid > best_valid_cosine:
+        if avg_valid < best_valid_cosine:
             best_valid_cosine = avg_valid
             torch.save(model, os.path.join(args.save_dir, 'model.pt'))
 
@@ -104,8 +104,9 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
         avg_source_valid, avg_target_valid = np.average(source_valid_cosine), np.average(target_valid_cosine)
         score = avg_source_valid + avg_target_valid * 2
         lr_scheduler.step(score)
+        print(f"Average cosine loss sore: {score}")
 
-        if score > best_score:
+        if score < best_score:
             best_score = score
             torch.save(model, os.path.join(args.save_dir, 'maml_model.pt'))
 
@@ -179,8 +180,9 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
         avg_source_valid, avg_target_valid = np.average(source_valid_cosine), np.average(target_valid_cosine)
         score = avg_source_valid + avg_target_valid * 2
         lr_scheduler.step(score)
+        print(f"Average cosine loss sore: {score}")
 
-        if score > best_score:
+        if score < best_score:
             best_score = score
             torch.save(model, os.path.join(args.save_dir, 'leap_model.pt'))
 
