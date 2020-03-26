@@ -43,19 +43,21 @@ class MultiHeadedAttention(nn.Module):
 
     def forward(self, x, mask=None):
         n_batches = x.size(0)
-        n_contexts = x.size(1)
 
-        query = self.q(x).view(n_batches, n_contexts, -1, self.n_head, self.d).transpose(1, 2)
-        key = self.k(x).view(n_batches, n_contexts, -1, self.n_head, self.d).transpose(1, 2)
-        value = self.v(x).view(n_batches, n_contexts, -1, self.n_head, self.d).transpose(1, 2)
+        query = self.q(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
+        key = self.k(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
+        value = self.v(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
 
         scores = torch.matmul(query, key.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d).float())
+
+        print(mask.shape, scores.shape)
+
         if mask is not None:
             scores = scores.masked_fill(mask == 0., -1e9)
         p_attn = nn.functional.softmax(scores, dim=-1)
         x = self.dropout(torch.matmul(p_attn, value))
 
-        x = x.transpose(-2, -3).contiguous().view(n_batches, n_contexts, -1, self.n_head * self.d)
+        x = x.transpose(-2, -3).contiguous().view(n_batches, -1, self.n_head * self.d)
         return self.out(x)
 
 
@@ -140,13 +142,16 @@ class HICE(nn.Module):
     def forward(self, contexts, chars=None, pad=0):
         # contexts : B (batch size) * K (num contexts) * L (max num words in context) : contains word indices
         # vocabs : B (batch size) * W (max number of characters in target words) : contains character indices
-        mask = self.mask_pad(contexts, pad)  # B * K * L * 1
-        x = self.pos_att(self.emb(contexts))  # B * K * L * H (word emb size)
+        masks = self.mask_pad(contexts, pad).transpose(0, 1)  # K * B * L * 1 * 1
+        x = self.pos_att(self.emb(contexts)).transpose(0, 1)  # K * B * L * H (word emb size)
 
         # apply SA and FFN to each context, then average over words for each context
-        for layer in self.mca_sa_layers:
-            x = layer(x, mask=mask)
-        x = torch.sum(x * mask, dim=-2) / torch.sum(mask, dim=-2) # B * K * H
+        res = []
+        for xi, mask in zip(x, masks):
+            for layer in self.mca_sa_layers:
+                xi = layer(xi, mask=mask)
+            res += [torch.sum(xi * mask, dim=-2) / torch.sum(mask, dim=-2)]
+        res = torch.stack(res).transpose(0, 1)  # B * K * H
 
         # apply SA and FFN to aggregated context
         for layer in self.context_aggegator:
