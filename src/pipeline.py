@@ -6,6 +6,7 @@ from gensim.models import Word2Vec
 from train import train, maml_adapt, leap_adapt
 from pathlib import Path
 import os
+from chimera import Chimeras
 
 if __name__ == '__main__':
     args = args = parser.parse_args()
@@ -37,3 +38,16 @@ if __name__ == '__main__':
         print("LEAP adaptation")
         model.load_state_dict(torch.load(os.path.join(args.save_dir, 'model.pt')))
         leap_adapt(model, source_corpus, target_corpus, char2idx, args, device)
+
+    print("Loading Chimeras for evaluation")
+    chimeras = Chimeras(Path(args.chimera_dir), w2v, source_corpus.dictionary, char2idx, ctx_len=args.ctx_len)
+
+    for name in ['model.pt', 'maml_model.pt', 'leap_model.pt']:
+        model.load_state_dict(torch.load(os.path.join(args.save_dir, name)))
+        model.eval()
+
+        print(f"{name} evaluation")
+        if args.fixed_shot:
+            chimeras.eval(model, device, k_shot=args.n_shot)
+        else:
+            chimeras.eval(model, device)
