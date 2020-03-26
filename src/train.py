@@ -54,7 +54,6 @@ def train(model, source_corpus, char2idx, args, device):
 def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
     model = model.to(device)
     meta_optimizer = torch.optim.Adam(model.parameters(), lr=args.meta_lr_init)
-    inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
     lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(meta_optimizer, factor=args.lr_decay,
                                                               patience=args.patience, threshold=args.threshold)
     best_score = -1
@@ -65,6 +64,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 
         model.train()
         for meta_batch in np.arange(args.n_meta_batch):
+            inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
             meta_optimizer.zero_grad()
 
             with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
@@ -114,8 +114,8 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 
 def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
     model = model.to(device)
-    meta_optimizer = torch.optim.Adam(model.parameters(), lr=args.meta_lr_init)
-    inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
+    leap = Leap(model)
+    meta_optimizer = torch.optim.Adam(leap.parameters(), lr=args.meta_lr_init)
     lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(meta_optimizer, factor=args.lr_decay,
                                                               patience=args.patience, threshold=args.threshold)
     best_score = -1
@@ -125,13 +125,13 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
         target_valid_cosine = []
 
         model.train()
-        leap = Leap(model)
         for meta_batch in np.arange(args.n_meta_batch):
             meta_optimizer.zero_grad()
 
             leap.init_task()
             leap.to(model)
-            for inner_batch in np.arange(args.n_inner_batch):
+            inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
+            for inner_batch in np.arange(args.n_task_steps):
                 inner_optimizer.zero_grad()
                 source_train_contexts, source_train_targets, source_train_vocabs = source_corpus.get_batch(
                         args.batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
@@ -143,7 +143,8 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 
             leap.init_task()
             leap.to(model)
-            for inner_batch in np.arange(args.n_inner_batch):
+            inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
+            for inner_batch in np.arange(args.n_task_steps):
                 inner_optimizer.zero_grad()
                 target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
                         args.batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
@@ -156,6 +157,7 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             leap.normalize()
             meta_optimizer.step()
 
+        leap.to(model)
         model.eval()
         with torch.no_grad():
             for batch in np.arange(args.n_batch):
