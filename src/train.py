@@ -67,19 +67,20 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
             meta_optimizer.zero_grad()
 
-            with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
-                for inner_batch in np.arange(args.n_inner_batch):
-                    source_train_contexts, source_train_targets, source_train_vocabs = source_corpus.get_batch(
-                        args.batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
-                    pred_emb = fmodel.forward(source_train_contexts, source_train_vocabs)
-                    loss = -nn.functional.cosine_similarity(pred_emb, source_train_targets).mean()
-                    diffopt.step(loss)
+            with torch.backends.cudnn.flags(enabled=False):
+                with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
+                    for inner_batch in np.arange(args.n_inner_batch):
+                        source_train_contexts, source_train_targets, source_train_vocabs = source_corpus.get_batch(
+                            args.batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
+                        pred_emb = fmodel.forward(source_train_contexts, source_train_vocabs)
+                        loss = -nn.functional.cosine_similarity(pred_emb, source_train_targets).mean()
+                        diffopt.step(loss)
 
-                target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
-                        args.batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
-                pred_emb = fmodel.forward(target_train_contexts, target_train_vocabs)
-                loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
-                loss.backward()
+                    target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
+                            args.batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
+                    pred_emb = fmodel.forward(target_train_contexts, target_train_vocabs)
+                    loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
+                    loss.backward()
 
             meta_optimizer.step()
 
