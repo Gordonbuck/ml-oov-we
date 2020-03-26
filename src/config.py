@@ -41,6 +41,8 @@ parser.add_argument('--lr_init', type=float, default=1e-3,
                     help='initial learning rate')
 parser.add_argument('--n_shot', type=int, default=10,
                     help='upper bound of training K-shot')
+parser.add_argument('--fixed_shot', action='store_true',
+                    help='fix the K-shot value to n_shot')
 
 '''
     Validation and Test

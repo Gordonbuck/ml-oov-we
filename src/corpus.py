@@ -92,7 +92,9 @@ class Corpus:
         self.w2v = w2v
         self.ctx_len = ctx_len
 
-    def get_batch(self, batch_size, k_shot, char2idx, device, use_valid=False):
+    def get_batch(self, batch_size, k_shot, char2idx, device, use_valid=False, fixed=True):
+        if not fixed:
+            k_shot = np.random.randint(k_shot) + 1
         dataset = self.valid_dataset if use_valid else self.train_dataset
         words = self.valid_words if use_valid else self.train_words
         sample_words = np.random.choice(words, batch_size)

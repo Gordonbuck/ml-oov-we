@@ -18,9 +18,9 @@ def train(model, source_corpus, char2idx, args, device):
 
         model.train()
         for batch in np.arange(args.n_batch):
-            k_shot = np.random.randint(args.n_shot) + 1
-            train_contexts, train_targets, train_vocabs = source_corpus.get_batch(args.batch_size, k_shot, char2idx,
-                                                                                  device)
+            train_contexts, train_targets, train_vocabs = source_corpus.get_batch(args.batch_size, args.n_shot,
+                                                                                  char2idx, device,
+                                                                                  fixed=args.fixed_shot)
             optimizer.zero_grad()
             pred_emb = model.forward(train_contexts, train_vocabs)
             loss = -nn.functional.cosine_similarity(pred_emb, train_targets).mean()
@@ -29,14 +29,14 @@ def train(model, source_corpus, char2idx, args, device):
 
         model.eval()
         with torch.no_grad():
-            for batch in np.arange(args.n_batch // args.n_shot):
-                for k_shot in np.arange(args.n_shot) + 1:
-                    valid_contexts, valid_targets, valid_vocabs = source_corpus.get_batch(args.batch_size, k_shot,
-                                                                                          char2idx, device,
-                                                                                          use_valid=True)
-                    pred_emb = model.forward(valid_contexts, valid_vocabs)
-                    loss = -nn.functional.cosine_similarity(pred_emb, valid_targets).mean()
-                    valid_cosine += [loss.cpu().numpy()]
+            for batch in np.arange(args.n_batch):
+                valid_contexts, valid_targets, valid_vocabs = source_corpus.get_batch(args.batch_size, args.n_shot,
+                                                                                      char2idx, device,
+                                                                                      use_valid=True,
+                                                                                      fixed=args.fixed_shot)
+                pred_emb = model.forward(valid_contexts, valid_vocabs)
+                loss = -nn.functional.cosine_similarity(pred_emb, valid_targets).mean()
+                valid_cosine += [loss.cpu().numpy()]
 
         avg_valid = np.average(valid_cosine)
         lr_scheduler.step(avg_valid)
@@ -69,16 +69,14 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 
             with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
                 for inner_batch in np.arange(args.n_inner_batch):
-                    k_shot = np.random.randint(args.n_shot) + 1
                     source_train_contexts, source_train_targets, source_train_vocabs = source_corpus.get_batch(
-                        args.batch_size, k_shot, char2idx, device)
+                        args.batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
                     pred_emb = fmodel.forward(source_train_contexts, source_train_vocabs)
                     loss = -nn.functional.cosine_similarity(pred_emb, source_train_targets).mean()
                     diffopt.step(loss)
 
-                k_shot = np.random.randint(args.n_shot) + 1
                 target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
-                        args.batch_size, k_shot, char2idx, device)
+                        args.batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
                 pred_emb = fmodel.forward(target_train_contexts, target_train_vocabs)
                 loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                 loss.backward()
@@ -87,19 +85,18 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 
         model.eval()
         with torch.no_grad():
-            for batch in np.arange(args.n_batch // args.n_shot):
-                for k_shot in np.arange(args.n_shot) + 1:
-                    source_valid_contexts, source_valid_targets, source_valid_vocabs = source_corpus.get_batch(
-                        args.batch_size, k_shot, char2idx, device, use_valid=True)
-                    pred_emb = model.forward(source_valid_contexts, source_valid_vocabs)
-                    loss = -nn.functional.cosine_similarity(pred_emb, source_valid_targets).mean()
-                    source_valid_cosine += [loss.cpu().numpy()]
+            for batch in np.arange(args.n_batch):
+                source_valid_contexts, source_valid_targets, source_valid_vocabs = source_corpus.get_batch(
+                    args.batch_size, args.n_shot, char2idx, device, use_valid=True, fixed=args.fixed_shot)
+                pred_emb = model.forward(source_valid_contexts, source_valid_vocabs)
+                loss = -nn.functional.cosine_similarity(pred_emb, source_valid_targets).mean()
+                source_valid_cosine += [loss.cpu().numpy()]
 
-                    target_valid_contexts, target_valid_targets, target_valid_vocabs = target_corpus.get_batch(
-                        args.batch_size, k_shot, char2idx, device, use_valid=True)
-                    pred_emb = model.forward(target_valid_contexts, target_valid_vocabs)
-                    loss = -nn.functional.cosine_similarity(pred_emb, target_valid_targets).mean()
-                    target_valid_cosine += [loss.cpu().numpy()]
+                target_valid_contexts, target_valid_targets, target_valid_vocabs = target_corpus.get_batch(
+                    args.batch_size, args.n_shot, char2idx, device, use_valid=True, fixed=args.fixed_shot)
+                pred_emb = model.forward(target_valid_contexts, target_valid_vocabs)
+                loss = -nn.functional.cosine_similarity(pred_emb, target_valid_targets).mean()
+                target_valid_cosine += [loss.cpu().numpy()]
 
         avg_source_valid, avg_target_valid = np.average(source_valid_cosine), np.average(target_valid_cosine)
         score = avg_source_valid + avg_target_valid * 2
@@ -136,9 +133,8 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             leap.to(model)
             for inner_batch in np.arange(args.n_inner_batch):
                 inner_optimizer.zero_grad()
-                k_shot = np.random.randint(args.n_shot) + 1
                 source_train_contexts, source_train_targets, source_train_vocabs = source_corpus.get_batch(
-                        args.batch_size, k_shot, char2idx, device)
+                        args.batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
                 pred_emb = model.forward(source_train_contexts, source_train_vocabs)
                 loss = -nn.functional.cosine_similarity(pred_emb, source_train_targets).mean()
                 loss.backward()
@@ -149,9 +145,8 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             leap.to(model)
             for inner_batch in np.arange(args.n_inner_batch):
                 inner_optimizer.zero_grad()
-                k_shot = np.random.randint(args.n_shot) + 1
                 target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
-                        args.batch_size, k_shot, char2idx, device)
+                        args.batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
                 pred_emb = model.forward(target_train_contexts, target_train_vocabs)
                 loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                 loss.backward()
@@ -163,19 +158,18 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 
         model.eval()
         with torch.no_grad():
-            for batch in np.arange(args.n_batch // args.n_shot):
-                for k_shot in np.arange(args.n_shot) + 1:
-                    source_valid_contexts, source_valid_targets, source_valid_vocabs = source_corpus.get_batch(
-                        args.batch_size, k_shot, char2idx, device, use_valid=True)
-                    pred_emb = model.forward(source_valid_contexts, source_valid_vocabs)
-                    loss = -nn.functional.cosine_similarity(pred_emb, source_valid_targets).mean()
-                    source_valid_cosine += [loss.cpu().numpy()]
+            for batch in np.arange(args.n_batch):
+                source_valid_contexts, source_valid_targets, source_valid_vocabs = source_corpus.get_batch(
+                    args.batch_size, args.n_shot, char2idx, device, use_valid=True, fixed=args.fixed_shot)
+                pred_emb = model.forward(source_valid_contexts, source_valid_vocabs)
+                loss = -nn.functional.cosine_similarity(pred_emb, source_valid_targets).mean()
+                source_valid_cosine += [loss.cpu().numpy()]
 
-                    target_valid_contexts, target_valid_targets, target_valid_vocabs = target_corpus.get_batch(
-                        args.batch_size, k_shot, char2idx, device, use_valid=True)
-                    pred_emb = model.forward(target_valid_contexts, target_valid_vocabs)
-                    loss = -nn.functional.cosine_similarity(pred_emb, target_valid_targets).mean()
-                    target_valid_cosine += [loss.cpu().numpy()]
+                target_valid_contexts, target_valid_targets, target_valid_vocabs = target_corpus.get_batch(
+                    args.batch_size, args.n_shot, char2idx, device, use_valid=True, fixed=args.fixed_shot)
+                pred_emb = model.forward(target_valid_contexts, target_valid_vocabs)
+                loss = -nn.functional.cosine_similarity(pred_emb, target_valid_targets).mean()
+                target_valid_cosine += [loss.cpu().numpy()]
 
         avg_source_valid, avg_target_valid = np.average(source_valid_cosine), np.average(target_valid_cosine)
         score = avg_source_valid + avg_target_valid * 2
