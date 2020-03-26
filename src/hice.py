@@ -48,7 +48,7 @@ class MultiHeadedAttention(nn.Module):
         key = self.k(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
         value = self.v(x).view(n_batches, -1, self.n_head, self.d).transpose(1, 2)
 
-        scores = torch.matmul(query, key.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d))
+        scores = torch.matmul(query, key.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d).float())
         if mask is not None:
             scores = scores.masked_fill(mask == 0., -1e9)
         p_attn = nn.functional.softmax(scores, dim=-1)
@@ -122,7 +122,7 @@ class HICE(nn.Module):
         self.bal = nn.Parameter(torch.ones(2) / 10.)
 
     def update_embedding(self, idx2vec, init=False):
-        target = torch.tensor(idx2vec).double()
+        target = torch.tensor(idx2vec).float()
         if not init:
             origin = self.emb.weight
             target[:origin.shape[0]] = origin
