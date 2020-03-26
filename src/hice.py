@@ -32,12 +32,12 @@ class ResidualConnection(nn.Module):
 
 
 class MultiHeadedAttention(nn.Module):
-    def __init__(self, n_hid, n_head, d, dropout=0.1):
+    def __init__(self, n_hid, n_head, dropout=0.1):
         super(MultiHeadedAttention, self).__init__()
-        self.d = d
+        self.d = n_hid // n_head
         self.n_head = n_head
         self.q, self.k, self.v = (nn.Linear(n_hid, n_hid) for _ in range(3))
-        self.out = nn.Linear(n_head * d, n_hid)
+        self.out = nn.Linear(n_head * self.d, n_hid)
         self.attn = None
         self.dropout = nn.Dropout(dropout)
 
@@ -71,9 +71,9 @@ class PositionFeedForward(nn.Module):
 
 
 class SelfAttentionFFN(nn.Module):
-    def __init__(self, n_head, n_hid, att_d, att_dropout=0.1, ffn_dropout=0.1, res_dropout=0.3):
+    def __init__(self, n_head, n_hid, att_dropout=0.1, ffn_dropout=0.1, res_dropout=0.3):
         super(SelfAttentionFFN, self).__init__()
-        self.self_attn = MultiHeadedAttention(n_hid, n_head, att_d, att_dropout)
+        self.self_attn = MultiHeadedAttention(n_hid, n_head, att_dropout)
         self.feed_forward = PositionFeedForward(n_hid, ffn_dropout)
         self.res_1 = ResidualConnection(n_hid, res_dropout)
         self.res_2 = ResidualConnection(n_hid, res_dropout)
@@ -115,8 +115,8 @@ class HICE(nn.Module):
         self.emb = nn.Embedding(len(idx2vec), n_hid)
         self.update_embedding(idx2vec, init=True)
         self.pos_att = PositionAttentionEncoding(n_hid, n_seq)
-        self.ce_sa_layers = nn.ModuleList([SelfAttentionFFN(n_head, n_hid, n_hid // n_head) for _ in range(n_layer)])
-        self.mca_sa_layers = nn.ModuleList([SelfAttentionFFN(n_head, n_hid, n_hid // n_head) for _ in range(n_layer)])
+        self.ce_sa_layers = nn.ModuleList([SelfAttentionFFN(n_head, n_hid) for _ in range(n_layer)])
+        self.mca_sa_layers = nn.ModuleList([SelfAttentionFFN(n_head, n_hid) for _ in range(n_layer)])
         if use_morph:
             self.char_cnn = CharacterCNN(n_hid)
         self.out = nn.Linear(n_hid, n_hid)
@@ -131,7 +131,7 @@ class HICE(nn.Module):
         self.emb.weight.requires_grad = self.emb_tunable
 
     def mask_pad(self, x, pad=0):
-        return (x != pad).unsqueeze(-1).float()
+        return (x != pad).unsqueeze(-1).unsqueeze(-1).float()
 
     def get_bal(self, n_cxt):
         # shorter the context length, the higher we should rely on morphology.
