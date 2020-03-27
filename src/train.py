@@ -64,15 +64,17 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 
         model.train()
         for meta_batch in np.arange(args.n_meta_batch):
-            inner_optimizer = torch.optim.SGD(model.parameters(), lr=args.inner_lr_init)
+            inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
             meta_optimizer.zero_grad()
 
             with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
+                print("1")
                 for inner_batch in np.arange(args.n_inner_batch):
+                    print("2")
                     source_train_contexts, source_train_targets, source_train_vocabs = source_corpus.get_batch(
                         args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
-                    pred_emb = fmodel.forward(source_train_contexts.contiguous(), source_train_vocabs.contiguous())
-                    loss = -nn.functional.cosine_similarity(pred_emb, source_train_targets).mean().contiguous()
+                    pred_emb = fmodel.forward(source_train_contexts, source_train_vocabs)
+                    loss = -nn.functional.cosine_similarity(pred_emb, source_train_targets).mean()
                     diffopt.step(loss)
 
                 target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
