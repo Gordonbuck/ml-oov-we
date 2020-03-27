@@ -58,7 +58,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                                                               patience=args.patience, threshold=args.threshold)
     best_score = 3
 
-    for meta_epoch in np.arange(args.n_epochs):
+    for meta_epoch in np.arange(args.n_meta_epochs):
         source_valid_cosine = []
         target_valid_cosine = []
 
@@ -121,7 +121,7 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                                                               patience=args.patience, threshold=args.threshold)
     best_score = 3
 
-    for meta_epoch in np.arange(args.n_epochs):
+    for meta_epoch in np.arange(args.n_meta_epochs):
         source_valid_cosine = []
         target_valid_cosine = []
 

@@ -59,22 +59,23 @@ class Chimeras:
         else:
             shots = [k_shot]
 
-        for k_shot in shots:
-            data = self.chimera_data[k_shot]
+        with torch.no_grad():
+            for k_shot in shots:
+                data = self.chimera_data[k_shot]
 
-            test_contexts = torch.tensor(data['contexts'], dtype=torch.long).to(device)
-            test_targets = torch.tensor(data['ground_truth_vector'], dtype=torch.float).to(device)
-            test_vocabs = torch.tensor(data['character'], dtype=torch.long).to(device)
+                test_contexts = torch.tensor(data['contexts'], dtype=torch.long).to(device)
+                test_targets = torch.tensor(data['ground_truth_vector'], dtype=torch.float).to(device)
+                test_vocabs = torch.tensor(data['character'], dtype=torch.long).to(device)
 
-            test_pred = model.forward(test_contexts, test_vocabs)
-            cosine = torch.nn.functional.cosine_similarity(test_pred, test_targets).mean().cpu().numpy()
+                test_pred = model.forward(test_contexts, test_vocabs)
+                cosine = torch.nn.functional.cosine_similarity(test_pred, test_targets).mean().cpu().numpy()
 
-            spearman_correlations = []
-            probe_vecs = [[self.w2v.wv[pi] for pi in probe] for probe in data["probes"]]
+                spearman_correlations = []
+                probe_vecs = [[self.w2v.wv[pi] for pi in probe] for probe in data["probes"]]
 
-            for pred, probes, scores in zip(test_pred.cpu().numpy(), probe_vecs, data["scores"]):
-                cos = cosine_similarity([pred], probes)
-                cor = spearmanr(cos[0], scores)[0]
-                spearman_correlations += [cor]
+                for pred, probes, scores in zip(test_pred.cpu().numpy(), probe_vecs, data["scores"]):
+                    cos = cosine_similarity([pred], probes)
+                    cor = spearmanr(cos[0], scores)[0]
+                    spearman_correlations += [cor]
 
-            print(f"Test with {k_shot} shot: Cosine: {cosine};  Spearman: {np.average(spearman_correlations)}")
+                print(f"Test with {k_shot} shot: Cosine: {cosine};  Spearman: {np.average(spearman_correlations)}")
