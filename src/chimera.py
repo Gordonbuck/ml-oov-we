@@ -67,7 +67,7 @@ class Chimeras:
             test_vocabs = torch.tensor(data['character'], dtype=torch.long).to(device)
 
             test_pred = model.forward(test_contexts, test_vocabs)
-            cosine = torch.nn.functional.cosine_similarity(test_pred, test_targets).mean().cpu()
+            cosine = torch.nn.functional.cosine_similarity(test_pred, test_targets).mean().cpu().numpy()
 
             spearman_correlations = []
             probe_vecs = [[self.w2v.wv[pi] for pi in probe] for probe in data["probes"]]
