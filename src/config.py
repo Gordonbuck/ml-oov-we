@@ -67,7 +67,7 @@ parser.add_argument('--maml', action='store_true',
                     help='adapt to target dataset with 1-st order MAML')
 parser.add_argument('--leap', action='store_true',
                     help='adapt to target dataset with leap')
-parser.add_argument('--n_meta_epochs', type=int, default=50,
+parser.add_argument('--n_meta_epochs', type=int, default=200,
                     help='upper bound of meta training epochs')
 parser.add_argument('--n_meta_batch', type=int, default=16,
                     help='number of batches in meta loop')

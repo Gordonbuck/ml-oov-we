@@ -82,6 +82,9 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                     loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                     loss.backward()
 
+                    del fmodel
+                    del diffopt
+
             meta_optimizer.step()
 
         model.eval()
