@@ -69,9 +69,9 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                 meta_optimizer.zero_grad()
 
                 # Have to run inner loop on CPU due to memory leak
-                old_device = device
-                device = torch.device('cpu')
-                model.to(device)
+                # old_device = device
+                # device = torch.device('cpu')
+                # model.to(device)
 
                 with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
                     for inner_batch in np.arange(args.n_inner_batch):
@@ -87,8 +87,8 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                     loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                     loss.backward()
 
-                device = old_device
-                model.to(device)
+                # device = old_device
+                # model.to(device)
 
                 meta_optimizer.step()
 
