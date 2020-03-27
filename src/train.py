@@ -54,7 +54,6 @@ def train(model, source_corpus, char2idx, args, device):
 def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
     model = model.to(device)
     meta_optimizer = torch.optim.Adam(model.parameters(), lr=args.meta_lr_init)
-    inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
     lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(meta_optimizer, factor=args.lr_decay,
                                                               patience=args.patience, threshold=args.threshold)
     best_score = 3
@@ -66,6 +65,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
         model.train()
         with torch.backends.cudnn.flags(enabled=False):
             for meta_batch in np.arange(args.n_meta_batch):
+                inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
                 meta_optimizer.zero_grad()
 
                 with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
@@ -83,6 +83,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                     loss.backward()
 
                 meta_optimizer.step()
+                del loss, fmodel, diffopt
 
         model.eval()
         with torch.no_grad():
