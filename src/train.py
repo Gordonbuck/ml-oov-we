@@ -67,7 +67,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
             meta_optimizer.zero_grad()
 
-            with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
+            with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=True) as (fmodel, diffopt):
                 print("1")
                 for inner_batch in np.arange(args.n_inner_batch):
                     print("2")
