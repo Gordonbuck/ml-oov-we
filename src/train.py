@@ -88,6 +88,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
     best_score = 3
 
     for meta_epoch in np.arange(args.n_meta_epochs):
+        gc.collect()
         source_valid_cosine = []
         target_valid_cosine = []
 
@@ -104,7 +105,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 
                 with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
                     report_memory(f"{meta_epoch},{meta_batch},inner_ctx")
-                    get_tensors(f"{meta_epoch},{meta_batch},inner_ctx")
+                    # get_tensors(f"{meta_epoch},{meta_batch},inner_ctx")
 
                     for inner_batch in np.arange(args.n_inner_batch):
                         source_train_contexts, source_train_targets, source_train_vocabs = source_corpus.get_batch(
@@ -113,7 +114,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                         loss = -nn.functional.cosine_similarity(pred_emb, source_train_targets).mean()
                         diffopt.step(loss)
                         report_memory(f"{meta_epoch},{meta_batch},inner1")
-                        get_tensors(f"{meta_epoch},{meta_batch},inner1")
+                        # get_tensors(f"{meta_epoch},{meta_batch},inner1")
 
                     target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
                         args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
@@ -121,14 +122,14 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                     loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                     loss.backward()
                     report_memory(f"{meta_epoch},{meta_batch},inner2")
-                    get_tensors(f"{meta_epoch},{meta_batch},inner2")
+                    # get_tensors(f"{meta_epoch},{meta_batch},inner2")
 
                 # device = old_device
                 # model.to(device)
 
                 meta_optimizer.step()
                 report_memory(f"{meta_epoch},{meta_batch},meta")
-                get_tensors(f"{meta_epoch},{meta_batch},meta")
+                # get_tensors(f"{meta_epoch},{meta_batch},meta")
 
         model.eval()
         with torch.no_grad():
