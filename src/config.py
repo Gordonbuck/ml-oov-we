@@ -71,7 +71,7 @@ parser.add_argument('--n_meta_batch', type=int, default=16,
                     help='number of batches in meta loop')
 parser.add_argument('--n_inner_batch', type=int, default=4,
                     help='number of batches in inner loop for MAML')
-parser.add_argument('--n_task_steps', type=int, default=128,
+parser.add_argument('--n_task_steps', type=int, default=64,
                     help='number of steps to train on a task excluding MAML')
 parser.add_argument('--meta_lr_init', type=float, default=5e-4,
                     help='initial learning rate for meta loop')

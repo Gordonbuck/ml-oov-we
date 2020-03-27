@@ -8,7 +8,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 class Chimeras:
     def __init__(self, chimera_dir, w2v, dictionary, char2idx, ctx_len=12, pad=0):
         correct = {}
-        with (chimera_dir / 'dataset.txt').open() as f:
+        with (chimera_dir / 'dataset.txt').open(encoding='latin1') as f:
             ser = 0
             for line in f.readlines()[1:]:
                 if ser % 2 == 0:
