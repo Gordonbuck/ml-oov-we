@@ -4,6 +4,7 @@ import numpy as np
 import os
 import torch
 import torch.nn as nn
+import gc
 
 
 def train(model, source_corpus, char2idx, args, device):
@@ -51,35 +52,6 @@ def train(model, source_corpus, char2idx, args, device):
             break
 
 
-def report_memory(name=''):
-    """Simple GPU memory report."""
-
-    mega_bytes = 1024.0 * 1024.0
-    string = name + ' memory (MB)'
-    string += ' | allocated: {}'.format(
-        torch.cuda.memory_allocated() / mega_bytes)
-    string += ' | max allocated: {}'.format(
-        torch.cuda.max_memory_allocated() / mega_bytes)
-    string += ' | cached: {}'.format(torch.cuda.memory_cached() / mega_bytes)
-    string += ' | max cached: {}'.format(
-        torch.cuda.max_memory_cached()/ mega_bytes)
-    print(string)
-
-import gc
-
-
-def get_tensors(name=''):
-    string = name
-    for obj in gc.get_objects():
-        try:
-            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                print(type(obj), obj.size())
-                string += f' | {type(obj)}, {obj.size()}'
-        except:
-            pass
-    print(string)
-
-
 def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
     model = model.to(device)
     meta_optimizer = torch.optim.Adam(model.parameters(), lr=args.meta_lr_init)
@@ -98,38 +70,21 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                 inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
                 meta_optimizer.zero_grad()
 
-                # Have to run inner loop on CPU due to memory leak
-                # old_device = device
-                # device = torch.device('cpu')
-                # model.to(device)
-
                 with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
-                    report_memory(f"{meta_epoch},{meta_batch},inner_ctx")
-                    # get_tensors(f"{meta_epoch},{meta_batch},inner_ctx")
-
                     for inner_batch in np.arange(args.n_inner_batch):
                         source_train_contexts, source_train_targets, source_train_vocabs = source_corpus.get_batch(
                             args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
                         pred_emb = fmodel.forward(source_train_contexts, source_train_vocabs)
                         loss = -nn.functional.cosine_similarity(pred_emb, source_train_targets).mean()
                         diffopt.step(loss)
-                        report_memory(f"{meta_epoch},{meta_batch},inner1")
-                        # get_tensors(f"{meta_epoch},{meta_batch},inner1")
 
                     target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
                         args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
                     pred_emb = fmodel.forward(target_train_contexts, target_train_vocabs)
                     loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                     loss.backward()
-                    report_memory(f"{meta_epoch},{meta_batch},inner2")
-                    # get_tensors(f"{meta_epoch},{meta_batch},inner2")
-
-                # device = old_device
-                # model.to(device)
 
                 meta_optimizer.step()
-                report_memory(f"{meta_epoch},{meta_batch},meta")
-                # get_tensors(f"{meta_epoch},{meta_batch},meta")
 
         model.eval()
         with torch.no_grad():

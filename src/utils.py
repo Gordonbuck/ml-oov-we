@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 
 class Dictionary(object):
@@ -65,3 +66,18 @@ def pad_sequences(sequences, max_len=None, padding='pre', truncating='pre', valu
             raise ValueError(f'Padding type "{padding}" not understood')
 
     return x
+
+
+def report_memory(name=''):
+    """Simple GPU memory report."""
+
+    mega_bytes = 1024.0 * 1024.0
+    string = name + ' memory (MB)'
+    string += ' | allocated: {}'.format(
+        torch.cuda.memory_allocated() / mega_bytes)
+    string += ' | max allocated: {}'.format(
+        torch.cuda.max_memory_allocated() / mega_bytes)
+    string += ' | cached: {}'.format(torch.cuda.memory_cached() / mega_bytes)
+    string += ' | max cached: {}'.format(
+        torch.cuda.max_memory_cached()/ mega_bytes)
+    print(string)
