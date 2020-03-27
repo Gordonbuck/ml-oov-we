@@ -65,7 +65,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
         model.train()
         with torch.backends.cudnn.flags(enabled=False):
             for meta_batch in np.arange(args.n_meta_batch):
-                inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
+                inner_optimizer = torch.optim.SGD(model.parameters(), lr=args.inner_lr_init)
                 meta_optimizer.zero_grad()
 
                 with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
@@ -83,7 +83,6 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                     loss.backward()
 
                 meta_optimizer.step()
-                del loss, fmodel, diffopt
 
         model.eval()
         with torch.no_grad():
