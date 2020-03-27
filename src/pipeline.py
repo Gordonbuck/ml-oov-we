@@ -34,7 +34,7 @@ if __name__ == '__main__':
     if args.maml:
         print("MAML adaptation")
         model.load_state_dict(torch.load(os.path.join(args.save_dir, 'model.pt')))
-        maml_adapt(model, source_corpus, target_corpus, char2idx, args, torch.device('cpu'))
+        maml_adapt(model, source_corpus, target_corpus, char2idx, args, device)
 
     if args.leap:
         print("LEAP adaptation")
