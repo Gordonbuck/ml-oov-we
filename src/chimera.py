@@ -23,7 +23,7 @@ class Chimeras:
             chimera_data[k] = {column: [] for column in columns}
             lefts, rights = [], []
 
-            with (chimera_dir / 'data.l%d.txt' % k).open() as f:
+            with (chimera_dir / f'data.l{k}.txt').open() as f:
                 lines = f.readlines()
 
                 for l in lines:
