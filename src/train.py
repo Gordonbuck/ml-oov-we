@@ -71,8 +71,8 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                 for inner_batch in np.arange(args.n_inner_batch):
                     source_train_contexts, source_train_targets, source_train_vocabs = source_corpus.get_batch(
                         args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
-                    pred_emb = fmodel.forward(source_train_contexts, source_train_vocabs)
-                    loss = -nn.functional.cosine_similarity(pred_emb, source_train_targets).mean()
+                    pred_emb = fmodel.forward(source_train_contexts.contiguous(), source_train_vocabs.contiguous())
+                    loss = -nn.functional.cosine_similarity(pred_emb, source_train_targets).mean().contiguous()
                     diffopt.step(loss)
 
                 target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
