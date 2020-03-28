@@ -19,8 +19,10 @@ if __name__ == '__main__':
     device = torch.device(f'cuda:{args.cuda}' if args.cuda != -1 else 'cpu')
     model = HICE(args.n_head, w2v.vector_size, 2 * args.ctx_len, args.n_layer, source_corpus.dictionary.idx2vec,
                  use_morph=args.use_morph)
-    print("Training")
-    train(model, source_corpus, char2idx, args, device)
+
+    if args.hice:
+        print("Training")
+        train(model, source_corpus, char2idx, args, device)
 
     if args.maml or args.leap:
         print("Loading Chimera corpus")
