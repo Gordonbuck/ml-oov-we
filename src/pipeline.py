@@ -47,7 +47,11 @@ if __name__ == '__main__':
     chimeras = Chimeras(Path(args.chimera_dir), w2v, source_corpus.dictionary, char2idx, ctx_len=args.ctx_len)
 
     for name in ['model.pt', 'maml_model.pt', 'leap_model.pt']:
-        model.load_state_dict(torch.load(os.path.join(args.save_dir, name)))
+        name = os.path.join(args.save_dir, name)
+        if not os.path.isfile(name):
+            continue
+
+        model.load_state_dict(torch.load(name))
         model.eval()
 
         print(f"{name} evaluation")
