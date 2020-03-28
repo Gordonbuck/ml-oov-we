@@ -57,12 +57,14 @@ parser.add_argument('--threshold', type=float, default=1e-3,
                     help='Threshold for ReduceLROnPlateau Scheduler judgement')
 parser.add_argument('--patience', type=int, default=4,
                     help='Patience for ReduceLROnPlateau Scheduler judgement')
-parser.add_argument('--lr_early_stop', type=float, default=1e-5,
+parser.add_argument('--lr_early_stop', type=float, default=1e-7,
                     help='early stop when lr below this value')
 
 '''
     Meta-Learning
 '''
+parser.add_argument('--hice', action='store_true',
+                    help='train the HiCE from scratch')
 parser.add_argument('--maml', action='store_true',
                     help='adapt to target dataset with 1-st order MAML')
 parser.add_argument('--leap', action='store_true',
@@ -77,7 +79,7 @@ parser.add_argument('--n_inner_batch', type=int, default=4,
                     help='number of batches in inner loop for MAML')
 parser.add_argument('--n_task_steps', type=int, default=64,
                     help='number of steps to train on a task excluding MAML')
-parser.add_argument('--meta_lr_init', type=float, default=5e-4,
+parser.add_argument('--meta_lr_init', type=float, default=1e-5,
                     help='initial learning rate for meta loop')
-parser.add_argument('--inner_lr_init', type=float, default=5e-4,
+parser.add_argument('--inner_lr_init', type=float, default=1e-5,
                     help='initial learning rate for inner loop')
