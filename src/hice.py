@@ -129,10 +129,6 @@ class HICE(nn.Module):
         self.emb.weight = nn.Parameter(target)
         self.emb.weight.requires_grad = self.emb_tunable
 
-    def get_bal(self, n_cxt):
-        # shorter the context length, the higher we should rely on morphology.
-        return torch.sigmoid(self.bal[0] * n_cxt + self.bal[1])
-
     def forward(self, contexts, chars=None, pad=0):
         # contexts : B (batch size) * K (num contexts) * L (max num words in context) : contains word indices
         # vocabs : B (batch size) * W (max number of characters in target words) : contains character indices
@@ -155,7 +151,7 @@ class HICE(nn.Module):
 
         # weighted average with character CNN
         if self.use_morph and not (chars is None):
-            cxt_weight = self.get_bal(x.shape[1])
+            cxt_weight = torch.sigmoid(self.bal[0] * x.shape[-2] + self.bal[1])
             x = cxt_weight * x.mean(dim=1) + (1. - cxt_weight) * self.char_cnn(chars)
         else:
             x = x.mean(dim=1)  # B * H
