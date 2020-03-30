@@ -110,7 +110,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             best_score = score
             torch.save(model.state_dict(), os.path.join(args.save_dir, 'maml_model.pt'))
 
-        if meta_optimizer.param_groups[0]['lr'] < args.lr_early_stop:
+        if meta_optimizer.param_groups[0]['lr'] < args.meta_lr_early_stop:
             print('LR early stop')
             break
 
@@ -185,6 +185,6 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             best_score = score
             torch.save(model.state_dict(), os.path.join(args.save_dir, 'leap_model.pt'))
 
-        if meta_optimizer.param_groups[0]['lr'] < args.lr_early_stop:
+        if meta_optimizer.param_groups[0]['lr'] < args.meta_lr_early_stop:
             print('LR early stop')
             break

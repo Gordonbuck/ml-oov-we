@@ -55,3 +55,8 @@ if __name__ == '__main__':
             chimeras.eval(model, device, k_shot=args.n_shot)
         else:
             chimeras.eval(model, device)
+
+    if args.fixed_shot:
+        chimeras.ground_truth(k_shot=args.n_shot)
+    else:
+        chimeras.ground_truth()

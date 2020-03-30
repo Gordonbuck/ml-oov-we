@@ -81,3 +81,23 @@ class Chimeras:
                     spearman_correlations += [cor]
 
                 print(f"Test with {k_shot} shot: Cosine: {cosine};  Spearman: {np.average(spearman_correlations)}")
+
+    def ground_truth(self, k_shot=None):
+        if k_shot is None:
+            shots = self.chimera_data
+        else:
+            shots = k_shot
+
+        for k_shot in shots:
+            data = self.chimera_data[k_shot]
+            pred = data['ground_truth_vector']
+
+            spearman_correlations = []
+            probe_vecs = [[self.w2v.wv[pi] for pi in probe] for probe in data["probes"]]
+
+            for pred, probes, scores in zip(pred, probe_vecs, data["scores"]):
+                cos = cosine_similarity([pred], probes)
+                cor = spearmanr(cos[0], scores)[0]
+                spearman_correlations += [cor]
+
+        print(f"Test with {k_shot} shot: Ground truth embeddings: Spearman: {np.average(spearman_correlations)}")
