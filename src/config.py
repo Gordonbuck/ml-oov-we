@@ -64,7 +64,7 @@ parser.add_argument('--lr_early_stop', type=float, default=1e-5,
 parser.add_argument('--hice', action='store_true',
                     help='train the HiCE from scratch')
 parser.add_argument('--maml', action='store_true',
-                    help='adapt to target dataset with 1-st order MAML')
+                    help='adapt to target dataset with MAML')
 parser.add_argument('--leap', action='store_true',
                     help='adapt to target dataset with leap')
 parser.add_argument('--meta_batch_size', type=int, default=128,
