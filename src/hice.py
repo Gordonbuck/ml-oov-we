@@ -22,7 +22,7 @@ class PositionAttentionEncoding(nn.Module):
 
 
 class ResidualConnection(nn.Module):
-    def __init__(self, size, dropout=0.1):
+    def __init__(self, size, dropout=0.3):
         super(ResidualConnection, self).__init__()
         self.norm = nn.LayerNorm(size, eps=1e-6)
         self.dropout = nn.Dropout(dropout)
@@ -155,7 +155,7 @@ class HICE(nn.Module):
 
         # weighted average with character CNN
         if self.use_morph and not (chars is None):
-            cxt_weight = self.get_bal(contexts.shape[-1])
+            cxt_weight = self.get_bal(x.shape[1])
             x = cxt_weight * x.mean(dim=1) + (1. - cxt_weight) * self.char_cnn(chars)
         else:
             x = x.mean(dim=1)  # B * H

@@ -31,7 +31,7 @@ parser.add_argument('--n_head', type=int, default=10,
                     help='number of heads in self attention')
 parser.add_argument('--n_layer', type=int, default=2,
                     help='number of encoding layers')
-parser.add_argument('--n_epochs', type=int, default=400,
+parser.add_argument('--n_epochs', type=int, default=200,
                     help='upper bound of training epochs')
 parser.add_argument('--n_batch', type=int, default=256,
                     help='number of batches in epoch')
@@ -47,8 +47,6 @@ parser.add_argument('--fixed_shot', action='store_true',
 '''
     Validation and Test
 '''
-parser.add_argument('--test_interval', type=int, default=1,
-                    help='report interval')
 parser.add_argument('--save_dir', type=str, default='../save/',
                     help='location for saving the best model')
 parser.add_argument('--lr_decay', type=float, default=0.5,
@@ -57,7 +55,7 @@ parser.add_argument('--threshold', type=float, default=1e-3,
                     help='Threshold for ReduceLROnPlateau Scheduler judgement')
 parser.add_argument('--patience', type=int, default=4,
                     help='Patience for ReduceLROnPlateau Scheduler judgement')
-parser.add_argument('--lr_early_stop', type=float, default=1e-7,
+parser.add_argument('--lr_early_stop', type=float, default=1e-5,
                     help='early stop when lr below this value')
 
 '''
@@ -77,9 +75,9 @@ parser.add_argument('--n_meta_batch', type=int, default=16,
                     help='number of batches in meta loop')
 parser.add_argument('--n_inner_batch', type=int, default=4,
                     help='number of batches in inner loop for MAML')
-parser.add_argument('--n_task_steps', type=int, default=32,
+parser.add_argument('--n_task_steps', type=int, default=64,
                     help='number of steps to train on a task excluding MAML')
-parser.add_argument('--meta_lr_init', type=float, default=1e-5,
+parser.add_argument('--meta_lr_init', type=float, default=5e-4,
                     help='initial learning rate for meta loop')
 parser.add_argument('--inner_lr_init', type=float, default=5e-4,
                     help='initial learning rate for inner loop')
