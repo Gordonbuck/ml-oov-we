@@ -79,9 +79,9 @@ parser.add_argument('--n_meta_batch', type=int, default=16,
 '''
 parser.add_argument('--n_inner_batch', type=int, default=4,
                     help='number of batches in inner loop for MAML')
-parser.add_argument('--maml_meta_lr_init', type=float, default=1e-5,
+parser.add_argument('--maml_meta_lr_init', type=float, default=5e-6,
                     help='initial learning rate for meta loop')
-parser.add_argument('--maml_inner_lr_init', type=float, default=5e-4,
+parser.add_argument('--maml_inner_lr_init', type=float, default=1e-4,
                     help='initial learning rate for inner loop')
 parser.add_argument('--maml_lr_early_stop', type=float, default=1e-7,
                     help='early stop when meta_lr below this value')
