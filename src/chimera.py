@@ -86,7 +86,7 @@ class Chimeras:
         if k_shot is None:
             shots = self.chimera_data
         else:
-            shots = k_shot
+            shots = [k_shot]
 
         for k_shot in shots:
             data = self.chimera_data[k_shot]

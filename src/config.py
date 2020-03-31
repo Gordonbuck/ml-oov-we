@@ -31,7 +31,7 @@ parser.add_argument('--n_head', type=int, default=10,
                     help='number of heads in self attention')
 parser.add_argument('--n_layer', type=int, default=2,
                     help='number of encoding layers')
-parser.add_argument('--n_epochs', type=int, default=250,
+parser.add_argument('--n_epochs', type=int, default=200,
                     help='upper bound of training epochs')
 parser.add_argument('--n_batch', type=int, default=256,
                     help='number of batches in epoch')
@@ -75,11 +75,11 @@ parser.add_argument('--n_meta_batch', type=int, default=16,
                     help='number of batches in meta loop')
 parser.add_argument('--n_inner_batch', type=int, default=4,
                     help='number of batches in inner loop for MAML')
-parser.add_argument('--n_task_steps', type=int, default=128,
+parser.add_argument('--n_task_steps', type=int, default=64,
                     help='number of steps to train on a task for Leap')
-parser.add_argument('--meta_lr_init', type=float, default=1e-5,
+parser.add_argument('--meta_lr_init', type=float, default=1e-4,
                     help='initial learning rate for meta loop')
 parser.add_argument('--inner_lr_init', type=float, default=1e-4,
                     help='initial learning rate for inner loop')
-parser.add_argument('--meta_lr_early_stop', type=float, default=1e-7,
+parser.add_argument('--meta_lr_early_stop', type=float, default=1e-5,
                     help='early stop when meta_lr below this value')
