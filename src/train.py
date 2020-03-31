@@ -54,7 +54,7 @@ def train(model, source_corpus, char2idx, args, device):
 
 def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
     model = model.to(device)
-    meta_optimizer = torch.optim.Adam(model.parameters(), lr=args.meta_lr_init)
+    meta_optimizer = torch.optim.Adam(model.parameters(), lr=args.maml_meta_lr_init)
     lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(meta_optimizer, factor=args.lr_decay,
                                                               patience=args.patience, threshold=args.threshold)
     best_score = 3
@@ -67,7 +67,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
         model.train()
         with torch.backends.cudnn.flags(benchmark=True):
             for meta_batch in np.arange(args.n_meta_batch):
-                inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
+                inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.maml_inner_lr_init)
                 meta_optimizer.zero_grad()
 
                 with higher.innerloop_ctx(model, inner_optimizer, copy_initial_weights=False) as (fmodel, diffopt):
@@ -110,7 +110,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             best_score = score
             torch.save(model.state_dict(), os.path.join(args.save_dir, 'maml_model.pt'))
 
-        if meta_optimizer.param_groups[0]['lr'] < args.meta_lr_early_stop:
+        if meta_optimizer.param_groups[0]['lr'] < args.maml_lr_early_stop:
             print('LR early stop')
             break
 
@@ -118,7 +118,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
     model = model.to(device)
     leap = Leap(model)
-    meta_optimizer = torch.optim.Adam(leap.parameters(), lr=args.meta_lr_init)
+    meta_optimizer = torch.optim.Adam(leap.parameters(), lr=args.leap_meta_lr_init)
     lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(meta_optimizer, factor=args.lr_decay,
                                                               patience=args.patience, threshold=args.threshold)
     best_score = 3
@@ -133,7 +133,7 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 
             leap.init_task()
             leap.to(model)
-            inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
+            inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.leap_inner_lr_init)
             for inner_batch in np.arange(args.n_task_steps):
                 inner_optimizer.zero_grad()
                 source_train_contexts, source_train_targets, source_train_vocabs = source_corpus.get_batch(
@@ -146,7 +146,7 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 
             leap.init_task()
             leap.to(model)
-            inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.inner_lr_init)
+            inner_optimizer = torch.optim.Adam(model.parameters(), lr=args.leap_inner_lr_init)
             for inner_batch in np.arange(args.n_task_steps):
                 inner_optimizer.zero_grad()
                 target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
@@ -185,6 +185,6 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             best_score = score
             torch.save(model.state_dict(), os.path.join(args.save_dir, 'leap_model.pt'))
 
-        if meta_optimizer.param_groups[0]['lr'] < args.meta_lr_early_stop:
+        if meta_optimizer.param_groups[0]['lr'] < args.leap_lr_early_stop:
             print('LR early stop')
             break
