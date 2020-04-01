@@ -31,7 +31,7 @@ parser.add_argument('--n_head', type=int, default=10,
                     help='number of heads in self attention')
 parser.add_argument('--n_layer', type=int, default=2,
                     help='number of encoding layers')
-parser.add_argument('--n_epochs', type=int, default=200,
+parser.add_argument('--n_epochs', type=int, default=400,
                     help='upper bound of training epochs')
 parser.add_argument('--n_batch', type=int, default=256,
                     help='number of batches in epoch')
