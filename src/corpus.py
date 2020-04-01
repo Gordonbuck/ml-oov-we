@@ -91,23 +91,31 @@ class Corpus:
         self.valid_words = list(valid_dataset.keys())
         self.w2v = w2v
         self.ctx_len = ctx_len
+        self.train_k2words = {}
+        self.valid_k2words = {}
+
+    def _get_words(self, k, use_valid):
+        dataset = self.valid_dataset if use_valid else self.train_dataset
+        words = self.valid_words if use_valid else self.train_words
+        k2words = self.valid_k2words if use_valid else self.train_k2words
+        if k not in k2words:
+            k2words[k] = [w for w in words if len(dataset[w]) >= k]
+        return dataset, k2words[k]
 
     def get_batch(self, batch_size, k_shot, char2idx, device, use_valid=False, fixed=True):
         if not fixed:
             k_shot = np.random.randint(k_shot) + 1
-        dataset = self.valid_dataset if use_valid else self.train_dataset
-        words = self.valid_words if use_valid else self.train_words
+        dataset, words = self._get_words(k_shot, use_valid)
         sample_words = np.random.choice(words, batch_size)
         contexts = []
         targets = []
         chars = []
         for word in sample_words:
-            if len(dataset[word]) != 0:
-                sample_sent_idx = np.random.choice(len(dataset[word]), k_shot)
-                sample_sents = dataset[word][sample_sent_idx]
-                contexts += [sample_sents]
-                targets += [self.w2v.wv[word]]
-                chars += [[char2idx[c] for c in word if c in char2idx]]
+            sample_sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=False)
+            sample_sents = dataset[word][sample_sent_idx]
+            contexts += [sample_sents]
+            targets += [self.w2v.wv[word]]
+            chars += [[char2idx[c] for c in word if c in char2idx]]
         contexts = torch.tensor(contexts).to(device)
         targets = torch.tensor(targets).to(device)
         chars = torch.tensor(pad_sequences(chars, max_len=2*self.ctx_len)).to(device)
