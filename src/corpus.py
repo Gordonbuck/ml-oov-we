@@ -94,24 +94,24 @@ class Corpus:
         self.train_k2words = {}
         self.valid_k2words = {}
 
-    def _get_words(self, k, use_valid):
+    def _get_words(self, k, use_valid, repeat_ctxs):
         dataset = self.valid_dataset if use_valid else self.train_dataset
         words = self.valid_words if use_valid else self.train_words
         k2words = self.valid_k2words if use_valid else self.train_k2words
         if k not in k2words:
             k2words[k] = [w for w in words if len(dataset[w]) >= k]
-        return dataset, k2words[k]
+        return dataset, words if repeat_ctxs else k2words[k]
 
-    def get_batch(self, batch_size, k_shot, char2idx, device, use_valid=False, fixed=True):
+    def get_batch(self, batch_size, k_shot, char2idx, device, use_valid=False, fixed=True, repeat_ctxs=False):
         if not fixed:
             k_shot = np.random.randint(k_shot) + 1
-        dataset, words = self._get_words(k_shot, use_valid)
+        dataset, words = self._get_words(k_shot, use_valid, repeat_ctxs)
         sample_words = np.random.choice(words, batch_size)
         contexts = []
         targets = []
         chars = []
         for word in sample_words:
-            sample_sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=False)
+            sample_sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=repeat_ctxs)
             sample_sents = dataset[word][sample_sent_idx]
             contexts += [sample_sents]
             targets += [self.w2v.wv[word]]

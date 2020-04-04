@@ -80,7 +80,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                         diffopt.step(loss)
 
                     target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
-                        args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
+                        args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot, repeat_ctxs=True)
                     pred_emb = fmodel.forward(target_train_contexts, target_train_vocabs)
                     loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                     loss.backward()
@@ -97,7 +97,8 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                 source_valid_cosine += [loss.cpu().numpy()]
 
                 target_valid_contexts, target_valid_targets, target_valid_vocabs = target_corpus.get_batch(
-                    args.meta_batch_size, args.n_shot, char2idx, device, use_valid=True, fixed=args.fixed_shot)
+                    args.meta_batch_size, args.n_shot, char2idx, device, use_valid=True, fixed=args.fixed_shot,
+                    repeat_ctxs=True)
                 pred_emb = model.forward(target_valid_contexts, target_valid_vocabs)
                 loss = -nn.functional.cosine_similarity(pred_emb, target_valid_targets).mean()
                 target_valid_cosine += [loss.cpu().numpy()]
@@ -153,7 +154,7 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             for inner_batch in np.arange(args.n_task_steps):
                 inner_optimizer.zero_grad()
                 target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
-                        args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
+                        args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot, repeat_ctxs=True)
                 pred_emb = model.forward(target_train_contexts, target_train_vocabs)
                 loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                 loss.backward()
@@ -174,7 +175,8 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                 source_valid_cosine += [loss.cpu().numpy()]
 
                 target_valid_contexts, target_valid_targets, target_valid_vocabs = target_corpus.get_batch(
-                    args.meta_batch_size, args.n_shot, char2idx, device, use_valid=True, fixed=args.fixed_shot)
+                    args.meta_batch_size, args.n_shot, char2idx, device, use_valid=True, fixed=args.fixed_shot,
+                    repeat_ctxs=True)
                 pred_emb = model.forward(target_valid_contexts, target_valid_vocabs)
                 loss = -nn.functional.cosine_similarity(pred_emb, target_valid_targets).mean()
                 target_valid_cosine += [loss.cpu().numpy()]
