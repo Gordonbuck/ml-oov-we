@@ -98,9 +98,11 @@ class Corpus:
         dataset = self.valid_dataset if use_valid else self.train_dataset
         words = self.valid_words if use_valid else self.train_words
         k2words = self.valid_k2words if use_valid else self.train_k2words
+        if repeat_ctxs:
+            k = 1
         if k not in k2words:
             k2words[k] = [w for w in words if len(dataset[w]) >= k]
-        return dataset, words if repeat_ctxs else k2words[k]
+        return dataset, k2words[k]
 
     def get_batch(self, batch_size, k_shot, char2idx, device, use_valid=False, fixed=True, repeat_ctxs=False):
         if not fixed:
