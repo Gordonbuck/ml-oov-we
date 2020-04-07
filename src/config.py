@@ -89,11 +89,11 @@ parser.add_argument('--maml_lr_early_stop', type=float, default=1e-6,
 '''
     LEAP
 '''
-parser.add_argument('--n_task_steps', type=int, default=64,
+parser.add_argument('--n_task_steps', type=int, default=128,
                     help='number of steps to train on a task for Leap')
-parser.add_argument('--leap_meta_lr_init', type=float, default=1e-4,
+parser.add_argument('--leap_meta_lr_init', type=float, default=1e-5,
                     help='initial learning rate for meta loop')
-parser.add_argument('--leap_inner_lr_init', type=float, default=1e-4,
+parser.add_argument('--leap_inner_lr_init', type=float, default=5e-4,
                     help='initial learning rate for inner loop')
-parser.add_argument('--leap_lr_early_stop', type=float, default=1e-5,
+parser.add_argument('--leap_lr_early_stop', type=float, default=1e-6,
                     help='early stop when meta_lr below this value')
