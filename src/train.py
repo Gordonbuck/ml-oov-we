@@ -43,10 +43,10 @@ def train(model, source_corpus, char2idx, args, device):
         lr_scheduler.step(avg_valid)
         print(f"Average cosine loss: {avg_valid}")
 
-        '''if avg_valid < best_valid_cosine:
+        if avg_valid < best_valid_cosine:
             best_valid_cosine = avg_valid
-            torch.save(model.state_dict(), os.path.join(args.save_dir, 'model.pt'))'''
-        torch.save(model.state_dict(), os.path.join(args.save_dir, 'model.pt'))
+            torch.save(model.state_dict(), os.path.join(args.save_dir, 'model.pt'))
+        #torch.save(model.state_dict(), os.path.join(args.save_dir, 'model.pt'))
 
         if optimizer.param_groups[0]['lr'] < args.lr_early_stop:
             print('LR early stop')
@@ -111,10 +111,10 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
         lr_scheduler.step(score)
         print(f"Average source cosine loss: {avg_source_valid}; Average target cosine loss: {avg_target_valid}")
 
-        '''if score < best_score:
+        if score < best_score:
             best_score = score
-            torch.save(model.state_dict(), os.path.join(args.save_dir, 'maml_model.pt'))'''
-        torch.save(model.state_dict(), os.path.join(args.save_dir, 'maml_model.pt'))
+            torch.save(model.state_dict(), os.path.join(args.save_dir, 'maml_model.pt'))
+        #torch.save(model.state_dict(), os.path.join(args.save_dir, 'maml_model.pt'))
 
         if meta_optimizer.param_groups[0]['lr'] < args.maml_lr_early_stop:
             print('LR early stop')
@@ -190,10 +190,10 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
         lr_scheduler.step(score)
         print(f"Average source cosine loss: {avg_source_valid}; Average target cosine loss: {avg_target_valid}")
 
-        '''if score < best_score:
+        if score < best_score:
             best_score = score
-            torch.save(model.state_dict(), os.path.join(args.save_dir, 'leap_model.pt'))'''
-        torch.save(model.state_dict(), os.path.join(args.save_dir, 'leap_model.pt'))
+            torch.save(model.state_dict(), os.path.join(args.save_dir, 'leap_model.pt'))
+        #torch.save(model.state_dict(), os.path.join(args.save_dir, 'leap_model.pt'))
 
         if meta_optimizer.param_groups[0]['lr'] < args.leap_lr_early_stop:
             print('LR early stop')
