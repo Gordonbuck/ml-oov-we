@@ -89,7 +89,7 @@ parser.add_argument('--maml_lr_early_stop', type=float, default=1e-6,
 '''
     LEAP
 '''
-parser.add_argument('--n_task_steps', type=int, default=128,
+parser.add_argument('--n_task_steps', type=int, default=64,
                     help='number of steps to train on a task for Leap')
 parser.add_argument('--leap_meta_lr_init', type=float, default=1e-4,
                     help='initial learning rate for meta loop')
