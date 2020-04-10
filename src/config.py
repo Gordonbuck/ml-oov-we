@@ -69,7 +69,7 @@ parser.add_argument('--leap', action='store_true',
                     help='adapt to target dataset with leap')
 parser.add_argument('--meta_batch_size', type=int, default=128,
                     help='meta batch size')
-parser.add_argument('--n_meta_epochs', type=int, default=50,
+parser.add_argument('--n_meta_epochs', type=int, default=100,
                     help='upper bound of meta training epochs')
 parser.add_argument('--n_meta_batch', type=int, default=16,
                     help='number of batches in meta loop')
@@ -83,7 +83,7 @@ parser.add_argument('--maml_meta_lr_init', type=float, default=1e-5,
                     help='initial learning rate for meta loop')
 parser.add_argument('--maml_inner_lr_init', type=float, default=5e-4,
                     help='initial learning rate for inner loop')
-parser.add_argument('--maml_lr_early_stop', type=float, default=1e-6,
+parser.add_argument('--maml_lr_early_stop', type=float, default=1e-7,
                     help='early stop when meta_lr below this value')
 
 '''
