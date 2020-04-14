@@ -6,7 +6,7 @@ from utils import pad_sequences, Dictionary
 
 class Corpus:
     def __init__(self, corpus_dir, w2v, dictionary=None, w2v_lbound=16, w2v_ubound=2 ** 16,
-                 corpus_lbound=2, ctx_len=12, pad=0, is_wikitext=True):
+                 corpus_lbound=2, ctx_len=12, pad=0, is_wikitext=False, is_chimera=False, is_bio=False):
         if dictionary is None:
             dictionary = Dictionary(w2v.vector_size)
 
@@ -15,7 +15,7 @@ class Corpus:
             corpus += [fi.lower().split() for fi in (corpus_dir / 'wiki.valid.tokens').open().readlines()]
             corpus += [fi.lower().split() for fi in (corpus_dir / 'wiki.test.tokens').open().readlines()]
             corpus = np.array(corpus)
-        else:
+        elif is_chimera:
             corpus = []
             for k in [2, 4, 6]:
                 with (corpus_dir / f'data.l{k}.txt').open() as f:
@@ -24,6 +24,19 @@ class Corpus:
                         fields = l.rstrip('\n').split('\t')
                         corpus += [sent.replace('___', ' <unk> ').lower().split() for sent in fields[1].split('@@')]
             corpus = np.unique(corpus)
+        elif is_bio:
+            ps = ['train/Genia4ERtask1.iob2', 'train/Genia4ERtask2.iob2', 'test/Genia4EReval1.iob2',
+                  'test/Genia4EReval2.iob2']
+            corpus = []
+            sent = []
+            for p in ps:
+                for w in (corpus_dir / p).open().readlines():
+                    w = w.split()[0]
+                    if w == '':
+                        corpus += [sent]
+                        sent = []
+                    else:
+                        sent += [w]
         print(f"Corpus shape: {corpus.shape}")
 
         word_count = defaultdict(int)

@@ -13,34 +13,34 @@ if __name__ == '__main__':
     print("Loading oracle word embeddings")
     w2v = Word2Vec.load(args.w2v_dir)
     print("Loading Wikitext-103 corpus")
-    source_corpus = Corpus(Path(args.wiki_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
-                           corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len)
+    wiki_corpus = Corpus(Path(args.wiki_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
+                         corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len, is_wikitext=True)
     char2idx = {c: i+1 for i, c in enumerate('abcdefghijklmnopqrstuvwxyz')}
     device = torch.device(f'cuda:{args.cuda}' if args.cuda != -1 else 'cpu')
-    model = HICE(args.n_head, w2v.vector_size, 2 * args.ctx_len, args.n_layer, source_corpus.dictionary.idx2vec,
+    model = HICE(args.n_head, w2v.vector_size, 2 * args.ctx_len, args.n_layer, wiki_corpus.dictionary.idx2vec,
                  use_morph=args.use_morph)
     print("Loading Chimera corpus")
-    target_corpus = Corpus(Path(args.chimera_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
-                           corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len,
-                           dictionary=source_corpus.dictionary, is_wikitext=False)
-    model.update_embedding(target_corpus.dictionary.idx2vec)
+    chimera_corpus = Corpus(Path(args.chimera_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
+                            corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len,
+                            dictionary=wiki_corpus.dictionary, is_chimera=True)
+    model.update_embedding(chimera_corpus.dictionary.idx2vec)
 
     if args.hice:
         print("Training")
-        train(model, source_corpus, char2idx, args, device)
+        train(model, wiki_corpus, char2idx, args, device)
 
     if args.maml:
         print("MAML adaptation")
         model.load_state_dict(torch.load(os.path.join(args.save_dir, 'model.pt')))
-        maml_adapt(model, source_corpus, target_corpus, char2idx, args, device)
+        maml_adapt(model, wiki_corpus, chimera_corpus, char2idx, args, device)
 
     if args.leap:
         print("LEAP adaptation")
         model.load_state_dict(torch.load(os.path.join(args.save_dir, 'model.pt')))
-        leap_adapt(model, source_corpus, target_corpus, char2idx, args, device)
+        leap_adapt(model, wiki_corpus, chimera_corpus, char2idx, args, device)
 
     print("Loading Chimeras for evaluation")
-    chimeras = Chimeras(Path(args.chimera_dir), w2v, source_corpus.dictionary, char2idx, ctx_len=args.ctx_len)
+    chimeras = Chimeras(Path(args.chimera_dir), w2v, wiki_corpus.dictionary, char2idx, ctx_len=args.ctx_len)
 
     for name in ['model.pt', 'maml_model.pt', 'leap_model.pt']:
         name = os.path.join(args.save_dir, name)
