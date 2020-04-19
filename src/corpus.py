@@ -31,19 +31,26 @@ class Corpus:
             sent = []
             for p in ps:
                 for w in (corpus_dir / p).open().readlines():
-                    w = w.split()[0]
                     if w == '':
                         corpus += [sent]
                         sent = []
                     else:
+                        w = w.split()[0]
                         sent += [w]
         print(f"Corpus shape: {corpus.shape}")
 
         word_count = defaultdict(int)
+        oov_words = []
         for sent in corpus:
             for w in sent:
                 word_count[w] += 1
                 dictionary.add_word(w, w2v)
+                if w not in dictionary.word2idx:
+                    oov_words.append(w)
+
+        oov_dataset = {}
+        for w in oov_words:
+            oov_dataset[w] = [[], []]
 
         words = []
         for w in dictionary.word2idx:
@@ -62,12 +69,15 @@ class Corpus:
         for sent in corpus:
             words_valid = []
             words_train = []
+            words_oov = []
 
             for idx, w in enumerate(sent):
                 if w in valid_dataset:
                     words_valid += [[w, idx]]
                 elif w in train_dataset:
                     words_train += [[w, idx]]
+                elif w in oov_dataset:
+                    words_oov += [[w, idx]]
 
             if len(words_valid) > 0 or len(words_train) > 0:
                 sent_word_ids = dictionary.sent2idx(sent)
@@ -84,6 +94,12 @@ class Corpus:
                             train_dataset[w][0] += [sent_word_ids[idx - ctx_len: idx]]
                             train_dataset[w][1] += [sent_word_ids[idx + 1:  idx + 1 + ctx_len]]
 
+                if len(words_oov) > 0:
+                    for w, idx in words_train:
+                        if np.count_nonzero(sent_word_ids[idx - ctx_len: idx + 1 + ctx_len]) > ctx_len:
+                            oov_dataset[w][0] += [sent_word_ids[idx - ctx_len: idx]]
+                            oov_dataset[w][1] += [sent_word_ids[idx + 1:  idx + 1 + ctx_len]]
+
         for w in valid_dataset:
             lefts = pad_sequences(valid_dataset[w][0], max_len=ctx_len, value=pad, padding='pre', truncating='pre')
             rights = pad_sequences(valid_dataset[w][1], max_len=ctx_len, value=pad, padding='post', truncating='post')
@@ -94,14 +110,22 @@ class Corpus:
             rights = pad_sequences(train_dataset[w][1], max_len=ctx_len, value=pad, padding='post', truncating='post')
             train_dataset[w] = np.concatenate((lefts, rights), axis=1)
 
+        for w in oov_dataset:
+            lefts = pad_sequences(oov_dataset[w][0], max_len=ctx_len, value=pad, padding='pre', truncating='pre')
+            rights = pad_sequences(oov_dataset[w][1], max_len=ctx_len, value=pad, padding='post', truncating='post')
+            oov_dataset[w] = np.concatenate((lefts, rights), axis=1)
+
         print(f"Train size: {len(train_dataset.keys())}")
         print(f"Valid size: {len(valid_dataset.keys())}")
+        print(f"OOV size: {len(oov_dataset.keys())}")
 
         self.dictionary = dictionary
         self.train_dataset = train_dataset
         self.train_words = list(train_dataset.keys())
         self.valid_dataset = valid_dataset
         self.valid_words = list(valid_dataset.keys())
+        self.oov_dataset = oov_dataset
+        self.oov_words = oov_words
         self.w2v = w2v
         self.ctx_len = ctx_len
         self.train_k2words = {}
@@ -135,3 +159,24 @@ class Corpus:
         targets = torch.tensor(targets).to(device)
         chars = torch.tensor(pad_sequences(chars, max_len=2*self.ctx_len)).to(device)
         return contexts, targets, chars
+
+    def get_oov_contexts(self, k_shot, char2idx, device, fixed=True):
+        if not fixed:
+            k_shot = np.random.randint(k_shot) + 1
+        dataset = self.oov_dataset
+        words = []
+        contexts = []
+        chars = []
+        for word in self.oov_dataset:
+            if len(dataset[word]) > 0:
+                words.append(word)
+                if len(dataset[word]) >= k_shot:
+                    sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=False)
+                else:
+                    sent_idx = np.random.choice(len(dataset[word]), k_shot)
+                sents = dataset[word][sent_idx]
+                contexts += [sents]
+                chars += [[char2idx[c] for c in word if c in char2idx]]
+        contexts = torch.tensor(contexts).to(device)
+        chars = torch.tensor(pad_sequences(chars, max_len=2 * self.ctx_len)).to(device)
+        return words, contexts, chars

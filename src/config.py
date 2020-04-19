@@ -11,6 +11,8 @@ parser.add_argument('--wiki_dir', type=str, default='../data/wikitext-103/',
                     help='location of the training corpus (wikitext-103)')
 parser.add_argument('--chimera_dir', type=str, default='../data/chimeras/',
                     help='location of the testing corpus (Chimeras)')
+parser.add_argument('--jnlpba_dir', type=str, default='../data/jnlpba/original-data/',
+                    help='location of jnlpba')
 parser.add_argument('--w2v_lbound', type=int, default=16,
                     help='Lower bound of word frequency in w2v for selecting target words')
 parser.add_argument('--w2v_ubound', type=int, default=2 ** 16,
@@ -49,6 +51,8 @@ parser.add_argument('--fixed_shot', action='store_true',
 '''
 parser.add_argument('--save_dir', type=str, default='../save/',
                     help='location for saving the best model')
+parser.add_argument('--oov_wv_dir', type=str, default='../save/wv/',
+                    help='location for saving the word vectors')
 parser.add_argument('--lr_decay', type=float, default=0.5,
                     help='Learning Rate Decay using ReduceLROnPlateau Scheduler')
 parser.add_argument('--threshold', type=float, default=1e-3,
