@@ -6,7 +6,7 @@ from utils import pad_sequences, Dictionary
 
 class Corpus:
     def __init__(self, corpus_dir, w2v, dictionary=None, w2v_lbound=16, w2v_ubound=2 ** 16,
-                 corpus_lbound=2, ctx_len=12, pad=0, is_wikitext=False, is_chimera=False, is_bio=False):
+                 corpus_lbound=2, ctx_len=12, pad=0, is_wikitext=False, is_chimera=False, is_jnlpba=False):
         if dictionary is None:
             dictionary = Dictionary(w2v.vector_size)
 
@@ -24,7 +24,7 @@ class Corpus:
                         fields = l.rstrip('\n').split('\t')
                         corpus += [sent.replace('___', ' <unk> ').lower().split() for sent in fields[1].split('@@')]
             corpus = np.unique(corpus)
-        elif is_bio:
+        elif is_jnlpba:
             ps = ['train/Genia4ERtask1.iob2', 'train/Genia4ERtask2.iob2', 'test/Genia4EReval1.iob2',
                   'test/Genia4EReval2.iob2']
             corpus = []

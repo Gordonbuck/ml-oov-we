@@ -71,6 +71,8 @@ parser.add_argument('--maml', action='store_true',
                     help='adapt to target dataset with MAML')
 parser.add_argument('--leap', action='store_true',
                     help='adapt to target dataset with leap')
+parser.add_argument('--adapt_jnlpba', action='store_true',
+                    help='adapt to jnlpba instead of chimera')
 parser.add_argument('--meta_batch_size', type=int, default=128,
                     help='meta batch size')
 parser.add_argument('--n_meta_epochs', type=int, default=100,
