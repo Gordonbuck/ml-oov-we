@@ -40,9 +40,6 @@ class Corpus:
                         if len(w) == 2:
                             w = w[0]
                             sent += [w]
-                        else:
-                            if sent:
-                                print(sent)
             corpus = np.array(corpus)
         print(f"Corpus shape: {corpus.shape}")
 

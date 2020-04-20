@@ -16,6 +16,11 @@ if __name__ == '__main__':
 
     target_corpus = Corpus(Path(args.jnlpba_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
                            corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len, is_jnlpba=True)
+    model = HICE(args.n_head, w2v.vector_size, 2 * args.ctx_len, args.n_layer, target_corpus.dictionary.idx2vec,
+                 use_morph=args.use_morph)
+    print("Exporting word vectors to file")
+    device = torch.device(f'cuda:{args.cuda}' if args.cuda != -1 else 'cpu')
+    write_word_vecs(model, target_corpus, args.n_shot, device, args.oov_wv_dir, 'test', fixed=args.fixed_shot)
     exit(0)
 
     print("Loading Wikitext-103 corpus")
@@ -37,19 +42,6 @@ if __name__ == '__main__':
                                 corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len,
                                 dictionary=wiki_corpus.dictionary, is_chimera=True)
     model.update_embedding(target_corpus.dictionary.idx2vec)
-
-    print("Exporting word vectors to file")
-    for name in ['model', 'maml_model', 'leap_model']:
-        model_path = os.path.join(args.save_dir, name + '.pt')
-        if not os.path.isfile(model_path):
-            continue
-
-        model.load_state_dict(torch.load(model_path))
-        model.eval()
-
-        write_word_vecs(model, target_corpus, args.n_shot, device, args.oov_wv_dir, name, fixed=args.fixed_shot)
-
-    exit(0)
 
     if args.hice:
         print("Training")
