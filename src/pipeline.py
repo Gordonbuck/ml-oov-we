@@ -21,6 +21,7 @@ if __name__ == '__main__':
     print("Exporting word vectors to file")
     device = torch.device(f'cuda:{args.cuda}' if args.cuda != -1 else 'cpu')
     char2idx = {c: i + 1 for i, c in enumerate('abcdefghijklmnopqrstuvwxyz')}
+    model.eval()
     write_word_vecs(model, target_corpus, args.n_shot, char2idx, device, args.oov_wv_dir, 'test', fixed=args.fixed_shot)
     exit(0)
 
