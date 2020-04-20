@@ -3,6 +3,7 @@
 # Split train into train+dev
 # Subsample test set to be sentence with at least one OOV word
 import os
+import torch
 
 
 def write_word_vecs(model, corpus, k_shot, char2idx, device, oov_wv_dir, model_name, fixed=True):
@@ -13,11 +14,12 @@ def write_word_vecs(model, corpus, k_shot, char2idx, device, oov_wv_dir, model_n
     breaks = 2
     offset = 0
     inc = -(-len(words) // breaks)
-    for b in range(breaks):
-        cxts = contexts[offset:offset+inc]
-        cs = chars[offset:offset+inc]
-        embs += model.forward(cxts, cs).cpu().numpy()
-        offset += inc
+    with torch.no_grad():
+        for b in range(breaks):
+            cxts = contexts[offset:offset+inc]
+            cs = chars[offset:offset+inc]
+            embs += model.forward(cxts, cs).cpu().numpy()
+            offset += inc
 
     corpus.w2v.wv.add(words, embs)
     corpus.w2v.wv.save_word2vec_format(os.path.join(oov_wv_dir, f'oov_w2v_{model_name}'))
