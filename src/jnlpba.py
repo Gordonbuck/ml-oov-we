@@ -8,7 +8,17 @@ import os
 def write_word_vecs(model, corpus, k_shot, char2idx, device, oov_wv_dir, model_name, fixed=True):
     model.to(device)
     words, contexts, chars = corpus.get_oov_contexts(k_shot, char2idx, device, fixed=fixed)
-    embs = model.forward(contexts, chars).cpu().numpy()
+
+    embs = []
+    breaks = 2
+    offset = 0
+    inc = -(-len(words) // breaks)
+    for b in range(breaks):
+        cxts = contexts[offset:offset+inc]
+        cs = chars[offset:offset+inc]
+        embs += model.forward(cxts, cs).cpu().numpy()
+        offset += inc
+
     corpus.w2v.wv.add(words, embs)
     corpus.w2v.wv.save_word2vec_format(os.path.join(oov_wv_dir, f'oov_w2v_{model_name}'))
 
