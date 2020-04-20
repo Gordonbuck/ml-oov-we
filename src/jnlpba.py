@@ -18,7 +18,7 @@ def write_word_vecs(model, corpus, k_shot, char2idx, device, oov_wv_dir, model_n
         for b in range(breaks):
             cxts = contexts[offset:offset+inc]
             cs = chars[offset:offset+inc]
-            embs += model.forward(cxts, cs).cpu().numpy()
+            embs += list(model.forward(cxts, cs).cpu().numpy())
             offset += inc
 
     corpus.w2v.wv.add(words, embs)
