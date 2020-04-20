@@ -35,8 +35,12 @@ class Corpus:
                         corpus += [sent]
                         sent = []
                     else:
-                        w = w.split()[0]
-                        sent += [w]
+                        w = w.split()
+                        if len(w) == 2:
+                            w = w[0]
+                            sent += [w]
+                        else:
+                            print(w)
         print(f"Corpus shape: {corpus.shape}")
 
         word_count = defaultdict(int)
