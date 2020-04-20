@@ -40,7 +40,7 @@ class Corpus:
                             w = w[0]
                             sent += [w]
                         else:
-                            print(w)
+                            print(sent)
         print(f"Corpus shape: {corpus.shape}")
 
         word_count = defaultdict(int)
