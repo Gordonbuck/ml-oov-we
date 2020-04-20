@@ -14,17 +14,6 @@ if __name__ == '__main__':
     print("Loading oracle word embeddings")
     w2v = Word2Vec.load(args.w2v_dir)
 
-    target_corpus = Corpus(Path(args.jnlpba_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
-                           corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len, is_jnlpba=True)
-    model = HICE(args.n_head, w2v.vector_size, 2 * args.ctx_len, args.n_layer, target_corpus.dictionary.idx2vec,
-                 use_morph=args.use_morph)
-    print("Exporting word vectors to file")
-    device = torch.device(f'cuda:{args.cuda}' if args.cuda != -1 else 'cpu')
-    char2idx = {c: i + 1 for i, c in enumerate('abcdefghijklmnopqrstuvwxyz')}
-    model.eval()
-    write_word_vecs(model, target_corpus, args.n_shot, char2idx, device, args.oov_wv_dir, 'test', fixed=args.fixed_shot)
-    exit(0)
-
     print("Loading Wikitext-103 corpus")
     wiki_corpus = Corpus(Path(args.wiki_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
                          corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len, is_wikitext=True)
