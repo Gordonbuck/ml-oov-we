@@ -31,6 +31,7 @@ class Corpus:
             sent = []
             for p in ps:
                 for w in (corpus_dir / p).open().readlines():
+                    w = w.strip()
                     if w == '':
                         corpus += [sent]
                         sent = []
