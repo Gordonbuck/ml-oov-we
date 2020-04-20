@@ -41,7 +41,9 @@ class Corpus:
                             w = w[0]
                             sent += [w]
                         else:
-                            print(sent)
+                            if sent:
+                                print(sent)
+            corpus = np.array(corpus)
         print(f"Corpus shape: {corpus.shape}")
 
         word_count = defaultdict(int)
