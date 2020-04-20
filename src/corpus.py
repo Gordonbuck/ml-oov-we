@@ -95,7 +95,7 @@ class Corpus:
                             train_dataset[w][1] += [sent_word_ids[idx + 1:  idx + 1 + ctx_len]]
 
                 if len(words_oov) > 0:
-                    for w, idx in words_train:
+                    for w, idx in words_oov:
                         if np.count_nonzero(sent_word_ids[idx - ctx_len: idx + 1 + ctx_len]) > ctx_len:
                             oov_dataset[w][0] += [sent_word_ids[idx - ctx_len: idx]]
                             oov_dataset[w][1] += [sent_word_ids[idx + 1:  idx + 1 + ctx_len]]

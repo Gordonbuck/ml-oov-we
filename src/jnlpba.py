@@ -11,3 +11,5 @@ def write_word_vecs(model, corpus, k_shot, device, oov_wv_dir, fixed=True):
     corpus.w2v.wv.add(words, embs)
     corpus.w2v.wv.save_word2vec_format(os.path.join(oov_wv_dir, 'oov_w2v'))
 
+def preprocess_data():
+    return
