@@ -50,9 +50,12 @@ if __name__ == '__main__':
     if args.adapt_jnlpba:
         print("Exporting word vectors to file")
         for name in ['model', 'maml_model', 'leap_model']:
-            name = os.path.join(args.save_dir, name + '.pt')
-            if not os.path.isfile(name):
+            model_path = os.path.join(args.save_dir, name + '.pt')
+            if not os.path.isfile(model_path):
                 continue
+
+            model.load_state_dict(torch.load(model_path))
+            model.eval()
 
             write_word_vecs(model, target_corpus, args.n_shot, device, args.oov_wv_dir, name, fixed=args.fixed_shot)
     else:
