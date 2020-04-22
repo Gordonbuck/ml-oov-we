@@ -1,7 +1,3 @@
-# Write word vectors to file for input to tagger - should be word followed by embedding with word and elements
-# separated by spaces. Need to set word_dim for tagger to be that of word embedding
-# Split train into train+dev
-# Subsample test set to be sentence with at least one OOV word
 import os
 import torch
 import random
@@ -76,6 +72,7 @@ def preprocess_jnlpba(jnlpba_dir, corpus):
                     test_size += 1
                     f_test.write('\n'.join(sent) + '\n\n')
                 sent = []
+                contains_oov = False
 
             if w.split()[0] in corpus.oov_dataset:
                 contains_oov = True
