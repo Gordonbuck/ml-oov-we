@@ -75,6 +75,7 @@ def preprocess_jnlpba(jnlpba_dir, corpus):
                     f_test.write('\n'.join(sent) + '\n\n')
                 sent = []
                 contains_oov = False
+                continue
 
             if w.split()[0] in corpus.oov_dataset:
                 contains_oov = True
