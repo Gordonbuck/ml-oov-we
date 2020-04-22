@@ -50,7 +50,6 @@ def preprocess_jnlpba(jnlpba_dir, corpus):
                     f_dev.write(w + '\n')
 
                 if w == '':
-                    print(w)
                     if random.random() < 0.05:
                         s = dev
                         dev_size += 1
@@ -64,7 +63,6 @@ def preprocess_jnlpba(jnlpba_dir, corpus):
         contains_oov = False
 
         for w in (jnlpba_dir / 'test/Genia4EReval1.iob2').open().readlines():
-            #print(w)
             w = w.strip()
             if not (w == '' or len(w.split()) == 2):
                 continue
