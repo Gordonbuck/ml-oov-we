@@ -51,15 +51,11 @@ class Corpus:
                 word_count[w] += 1
                 dictionary.add_word(w, w2v)
                 if w not in oov_dataset and w not in dictionary.word2idx:
-                    if w in string.punctuation or w[0] in string.punctuation or w[-1] in string.punctuation or \
-                            any(c.isdigit() for c in w):
+                    if any(c.isdigit() for c in w) or any(c in string.punctuation for c in w):
                         continue
-                    try:
-                        float(w)
-                    except ValueError:
-                        print(w)
-                        oov_words.append(w)
-                        oov_dataset[w] = [[], []]
+                    print(w)
+                    oov_words.append(w)
+                    oov_dataset[w] = [[], []]
 
         words = []
         for w in dictionary.word2idx:
