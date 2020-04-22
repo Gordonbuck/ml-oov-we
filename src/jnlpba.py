@@ -40,7 +40,7 @@ def preprocess_jnlpba(jnlpba_dir, corpus):
                 train_size += 1
 
             for w in (jnlpba_dir / 'train/Genia4ERtask1.iob2').open().readlines()[:-1]:
-                w = w.strip()
+                w = w.strip().lower()
                 if not (w == '' or len(w.split()) == 2):
                     continue
 
@@ -63,7 +63,7 @@ def preprocess_jnlpba(jnlpba_dir, corpus):
         contains_oov = False
 
         for w in (jnlpba_dir / 'test/Genia4EReval1.iob2').open().readlines():
-            w = w.strip()
+            w = w.strip().lower()
             if not (w == '' or len(w.split()) == 2):
                 continue
 
