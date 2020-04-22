@@ -40,6 +40,8 @@ def preprocess_jnlpba(jnlpba_dir, corpus):
                 train_size += 1
 
             for w in (jnlpba_dir / 'train/Genia4ERtask1.iob2').open().readlines():
+                print(w)
+                exit(0)
                 w = w.strip()
                 if not (w == '' or len(w.split()) == 2):
                     continue
