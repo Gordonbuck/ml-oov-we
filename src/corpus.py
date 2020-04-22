@@ -51,7 +51,7 @@ class Corpus:
                 word_count[w] += 1
                 dictionary.add_word(w, w2v)
                 if w not in oov_dataset and w not in dictionary.word2idx:
-                    if w in string.punctuation:
+                    if w in string.punctuation or any(c.isdigit() for c in w):
                         continue
                     try:
                         float(w)
