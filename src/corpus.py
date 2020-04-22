@@ -45,16 +45,16 @@ class Corpus:
 
         word_count = defaultdict(int)
         oov_words = []
+        oov_dataset = {}
         for sent in corpus:
             for w in sent:
                 word_count[w] += 1
                 dictionary.add_word(w, w2v)
-                if w not in dictionary.word2idx and not(w in string.punctuation or w.isnumeric()):
+                if w not in oov_dataset and w not in dictionary.word2idx and not(
+                                w in string.punctuation or w.isnumeric()):
+                    print(w)
                     oov_words.append(w)
-
-        oov_dataset = {}
-        for w in oov_words:
-            oov_dataset[w] = [[], []]
+                    oov_dataset[w] = [[], []]
 
         words = []
         for w in dictionary.word2idx:
