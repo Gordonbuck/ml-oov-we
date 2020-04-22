@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from collections import defaultdict
 from utils import pad_sequences, Dictionary
+import string
 
 
 class Corpus:
@@ -48,8 +49,7 @@ class Corpus:
             for w in sent:
                 word_count[w] += 1
                 dictionary.add_word(w, w2v)
-                if w not in dictionary.word2idx:
-                    print(w)
+                if w not in dictionary.word2idx and not(w in string.punctuation or w.isnumeric()):
                     oov_words.append(w)
 
         oov_dataset = {}
