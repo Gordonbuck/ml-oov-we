@@ -15,8 +15,8 @@ if __name__ == '__main__':
     w2v = Word2Vec.load(args.w2v_dir)
 
     print("Loading Wikitext-103 corpus")
-    wiki_corpus = Corpus(Path(args.wiki_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
-                         corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len, is_wikitext=True)
+    #wiki_corpus = Corpus(Path(args.wiki_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
+                         #corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len, is_wikitext=True)
     char2idx = {c: i+1 for i, c in enumerate('abcdefghijklmnopqrstuvwxyz')}
     device = torch.device(f'cuda:{args.cuda}' if args.cuda != -1 else 'cpu')
     model = HICE(args.n_head, w2v.vector_size, 2 * args.ctx_len, args.n_layer, wiki_corpus.dictionary.idx2vec,
@@ -26,7 +26,7 @@ if __name__ == '__main__':
         print("Loading JNLPBA corpus")
         target_corpus = Corpus(Path(args.jnlpba_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
                                corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len,
-                               dictionary=wiki_corpus.dictionary, is_jnlpba=True)
+                               dictionary=None, is_jnlpba=True)
         print("Preprocessing jnlpba")
         preprocess_jnlpba(Path(args.jnlpba_dir), target_corpus)
         exit(0)
