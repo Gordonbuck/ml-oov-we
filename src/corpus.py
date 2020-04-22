@@ -48,7 +48,8 @@ class Corpus:
             for w in sent:
                 word_count[w] += 1
                 dictionary.add_word(w, w2v)
-                if w not in dictionary.word2idx :
+                if w not in dictionary.word2idx:
+                    print(w)
                     oov_words.append(w)
 
         oov_dataset = {}
