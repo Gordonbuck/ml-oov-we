@@ -54,7 +54,6 @@ class Corpus:
                     if any(c.isdigit() for c in w) or any(c in string.punctuation for c in [w[0], w[-1]]) or \
                             any(c != '-' and c in string.punctuation for c in w):
                         continue
-                    print(w)
                     oov_words.append(w)
                     oov_dataset[w] = [[], []]
 
