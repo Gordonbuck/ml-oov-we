@@ -29,6 +29,7 @@ if __name__ == '__main__':
                                dictionary=wiki_corpus.dictionary, is_jnlpba=True)
         print("Preprocessing jnlpba")
         preprocess_jnlpba(Path(args.jnlpba_dir), target_corpus)
+        exit(0)
     else:
         print("Loading Chimera corpus")
         target_corpus = Corpus(Path(args.chimera_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
