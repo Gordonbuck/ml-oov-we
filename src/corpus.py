@@ -130,7 +130,7 @@ class Corpus:
         self.valid_dataset = valid_dataset
         self.valid_words = list(valid_dataset.keys())
         self.oov_dataset = oov_dataset
-        self.oov_words = oov_words
+        self.oov_words = list(oov_dataset.keys())
         self.w2v = w2v
         self.ctx_len = ctx_len
         self.train_k2words = {}
