@@ -53,6 +53,8 @@ parser.add_argument('--save_dir', type=str, default='../save/',
                     help='location for saving the best model')
 parser.add_argument('--oov_wv_dir', type=str, default='../save/wv/',
                     help='location for saving the word vectors')
+parser.add_argument('--results_dir', type=str, default='../save/results/',
+                    help='location for saving results')
 parser.add_argument('--lr_decay', type=float, default=0.5,
                     help='Learning Rate Decay using ReduceLROnPlateau Scheduler')
 parser.add_argument('--threshold', type=float, default=1e-3,

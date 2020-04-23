@@ -61,8 +61,10 @@ class Chimeras:
         else:
             shots = [k_shot]
 
+        results = {}
         with torch.no_grad():
             for k_shot in shots:
+                results[k_shot] = []
                 data = self.chimera_data[k_shot]
 
                 test_contexts = torch.tensor(data['contexts'], dtype=torch.long).to(device)
@@ -81,6 +83,13 @@ class Chimeras:
                     spearman_correlations += [cor]
 
                 print(f"Test with {k_shot} shot: Cosine: {cosine};  Spearman: {np.average(spearman_correlations)}")
+
+                inds = np.argsort(spearman_correlations)
+                for i in inds:
+                    wl = [data['target_word'][i], data['text'][i], spearman_correlations[i]]
+                    results[k_shot].append(wl)
+
+        return results
 
     def ground_truth(self, k_shot=None):
         if k_shot is None:

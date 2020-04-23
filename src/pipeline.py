@@ -65,18 +65,26 @@ if __name__ == '__main__':
         chimeras = Chimeras(Path(args.chimera_dir), w2v, wiki_corpus.dictionary, char2idx, ctx_len=args.ctx_len)
 
         for name in ['model', 'maml_model', 'leap_model']:
-            name = os.path.join(args.save_dir, name + '.pt')
-            if not os.path.isfile(name):
+            model_path = os.path.join(args.save_dir, name + '.pt')
+            if not os.path.isfile(model_path):
                 continue
 
-            model.load_state_dict(torch.load(name))
+            model.load_state_dict(torch.load(model_path))
             model.eval()
 
             print(f"{name} evaluation")
             if args.fixed_shot:
-                chimeras.eval(model, device, k_shot=args.n_shot)
+                results = chimeras.eval(model, device, k_shot=args.n_shot)
             else:
-                chimeras.eval(model, device)
+                results = chimeras.eval(model, device)
+
+            for k_shot in results:
+                with (Path(args.results_dir) / f'cr_{name}_{k_shot}').open(mode='w+') as f:
+                    for wl in results[k_shot]:
+                        f.write(wl[0] + ' ' + str(wl[2]) + '\n')
+                        for sent in wl[1]:
+                            f.write(sent + '\n')
+                        f.write('\n')
 
         if args.fixed_shot:
             chimeras.ground_truth(k_shot=args.n_shot)
