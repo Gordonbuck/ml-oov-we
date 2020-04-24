@@ -83,7 +83,7 @@ if __name__ == '__main__':
                     for wl in results[k_shot]:
                         f.write(wl[0] + ' ' + str(wl[2]) + '\n')
                         for sent in wl[1]:
-                            f.write(sent + '\n')
+                            f.write(' '.join(sent) + '\n')
                         f.write('\n')
 
         if args.fixed_shot:
