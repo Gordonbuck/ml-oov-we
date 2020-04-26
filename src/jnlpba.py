@@ -79,6 +79,6 @@ def preprocess_jnlpba(jnlpba_dir, corpus):
             if w_0 in corpus.oov_dataset and len(corpus.oov_dataset[w_0] > 0):
                 contains_oov = True
 
-            sent += w
+            sent += [w]
 
     print(f'JNLPBA train size: {train_size} dev size: {dev_size} test size: {test_size}')
