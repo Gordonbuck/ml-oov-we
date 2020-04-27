@@ -34,9 +34,6 @@ if __name__ == '__main__':
                                 dictionary=wiki_corpus.dictionary, is_chimera=True)
     model.update_embedding(target_corpus.dictionary.idx2vec)
 
-    preprocess_jnlpba(Path(args.jnlpba_dir), target_corpus)
-    exit(0)
-
     if args.hice:
         print("Training")
         train(model, wiki_corpus, char2idx, args, device)
