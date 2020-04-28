@@ -82,6 +82,7 @@ if __name__ == '__main__':
                 with (Path(args.results_dir) / f'cr_{name}_{k_shot}').open(mode='w+') as f:
                     for wl in results[k_shot]:
                         f.write(wl[0] + ' ' + str(wl[2]) + '\n')
+                        f.write(' '.join(wl[3]) + '\n')
                         for sent in wl[1]:
                             f.write(' '.join(sent) + '\n')
                         f.write('\n')

@@ -86,7 +86,7 @@ class Chimeras:
 
                 inds = np.argsort(spearman_correlations)
                 for i in inds:
-                    wl = [data['target_word'][i], data['text'][i], spearman_correlations[i]]
+                    wl = [data['target_word'][i], data['text'][i], spearman_correlations[i], data['probes'][i]]
                     results[k_shot].append(wl)
 
         return results
