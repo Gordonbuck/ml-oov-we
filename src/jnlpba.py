@@ -32,7 +32,7 @@ def preprocess_jnlpba(jnlpba_dir, corpus):
     print("Writing JNLPBA train and dev files")
     with (jnlpba_dir / "train.txt").open(mode='w+') as f_train:
         with (jnlpba_dir / "dev.txt").open(mode='w+') as f_dev:
-            if random.random() < 0.05:
+            if random.random() < 0.1:
                 s = dev
                 dev_size += 1
             else:
@@ -50,7 +50,7 @@ def preprocess_jnlpba(jnlpba_dir, corpus):
                     f_dev.write(w + '\n')
 
                 if w == '':
-                    if random.random() < 0.05:
+                    if random.random() < 0.1:
                         s = dev
                         dev_size += 1
                     else:

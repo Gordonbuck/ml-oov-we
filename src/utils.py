@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-
+from scipy.stats import spearmanr
 
 class Dictionary(object):
     def __init__(self, n_hid):
@@ -79,5 +79,43 @@ def report_memory(name=''):
         torch.cuda.max_memory_allocated() / mega_bytes)
     string += ' | cached: {}'.format(torch.cuda.memory_cached() / mega_bytes)
     string += ' | max cached: {}'.format(
-        torch.cuda.max_memory_cached()/ mega_bytes)
+        torch.cuda.max_memory_cached() / mega_bytes)
     print(string)
+
+
+def correlate_results(paths):
+    vars = []
+    var_to_ind = {}
+    inital_lines = paths[0].open().readlines()
+    for i in range(len(inital_lines) // 5):
+        i = 5*i
+        name_score = inital_lines[i].split()
+        name = name_score[0]
+        probes = inital_lines[i+1]
+        ctx1 = inital_lines[i+2]
+        ctx2 = inital_lines[i+3]
+
+        var = [name, probes.split(' '), ctx1, ctx2]
+        vars.append(var)
+        var_to_ind[' '.join(var)] = i // 5
+
+    datas = []
+    for p in paths:
+        lines = p.open().readlines()
+        data = np.zeros(len(lines) // 5)
+        for i in range(len(lines) // 5):
+            i = 5 * i
+            name_score = lines[i].split()
+            name = name_score[0]
+            score = float(name_score[1])
+            probes = lines[i + 1]
+            ctx1 = lines[i + 2]
+            ctx2 = lines[i + 3]
+
+            var = [name, probes.split(' '), ctx1, ctx2]
+            data[var_to_ind[' '.join(var)]] = score
+
+        datas.append(data)
+
+    cor = spearmanr(datas)
+    print(cor)
