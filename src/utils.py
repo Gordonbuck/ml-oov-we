@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from scipy.stats import spearmanr
+from pathlib import Path
 
 class Dictionary(object):
     def __init__(self, n_hid):
@@ -83,12 +84,12 @@ def report_memory(name=''):
     print(string)
 
 
-def correlate_results(paths):
+def correlate_results(paths, result_path):
     vars = []
     var_to_ind = {}
     inital_lines = paths[0].open().readlines()
     for i in range(len(inital_lines) // 5):
-        i = 5*i
+        i = 5 * i
         name_score = inital_lines[i].split()
         name = name_score[0]
         probes = inital_lines[i+1]
@@ -119,3 +120,26 @@ def correlate_results(paths):
 
     cor = spearmanr(datas)
     print(cor)
+
+    data_inds = [np.argsort(data) for data in datas]
+    data_ranks = [np.argsort(data) for data in data_inds]
+    ranks = np.transpose(data_ranks)
+    total_ranks = np.sum(ranks, axis=1)
+    inds = np.argsort(total_ranks)
+
+    with result_path.open(mode='w+') as f:
+        for i in inds:
+            var = vars[i]
+            f.write(var[0] + ' ' + str(total_ranks[i]))
+            f.write(' '.join(var[1]) + '\n')
+            f.write(' '.join(var[2]) + '\n')
+            f.write(' '.join(var[3]) + '\n')
+            f.write('\n')
+
+
+if __name__ == '__main__':
+    paths = ["cr_leap_model_2_2", "cr_leap_model_2_3", "cr_leap_model_2_4", "cr_leap_model_2_5", "cr_leap_model_2_6",
+             "cr_maml_model_2_2", "cr_maml_model_2_3", "cr_maml_model_2_4", "cr_maml_model_2_5", "cr_maml_model_2_6",
+             "cr_model_2_2", "cr_model_2_3", "cr_model_2_4", "cr_model_2_5", "cr_model_2_6"]
+    paths = [Path("../../results/2shot/" + p) for p in paths]
+    correlate_results(paths, Path("../../results/2shot_correlated"))
