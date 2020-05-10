@@ -98,7 +98,8 @@ def correlate_results(paths, result_path):
 
         var = [name, probes.split(' '), ctx1, ctx2]
         vars.append(var)
-        var_to_ind[' '.join(var)] = i // 5
+        var_str = ' '.join([name, probes, ctx1, ctx2])
+        var_to_ind[var_str] = i // 5
 
     datas = []
     for p in paths:
@@ -113,8 +114,8 @@ def correlate_results(paths, result_path):
             ctx1 = lines[i + 2]
             ctx2 = lines[i + 3]
 
-            var = [name, probes.split(' '), ctx1, ctx2]
-            data[var_to_ind[' '.join(var)]] = score
+            var_str = ' '.join([name, probes, ctx1, ctx2])
+            data[var_to_ind[var_str]] = score
 
         datas.append(data)
 
@@ -130,10 +131,10 @@ def correlate_results(paths, result_path):
     with result_path.open(mode='w+') as f:
         for i in inds:
             var = vars[i]
-            f.write(var[0] + ' ' + str(total_ranks[i]))
-            f.write(' '.join(var[1]) + '\n')
-            f.write(' '.join(var[2]) + '\n')
-            f.write(' '.join(var[3]) + '\n')
+            f.write(var[0] + ' ' + str(total_ranks[i]) + ' ' + str(ranks[i]) + '\n')
+            f.write(' '.join(var[1]))
+            f.write(var[2])
+            f.write(var[3])
             f.write('\n')
 
 
