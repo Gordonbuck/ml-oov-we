@@ -119,8 +119,15 @@ def correlate_results(paths, result_path):
 
         datas.append(data)
 
-    cor = spearmanr(datas)
-    print(cor)
+    cors = []
+    for i, d in enumerate(datas):
+        for j in range(i+1, len(datas)):
+            d2 = datas[j]
+            cor = spearmanr(d, d2)[0]
+            cors.append(cor)
+    print(cors)
+    print(np.mean(cors))
+    print(np.var(cors))
 
     data_inds = [np.argsort(data) for data in datas]
     data_ranks = [np.argsort(data) for data in data_inds]
