@@ -83,7 +83,7 @@ class Corpus:
                 elif w in oov_dataset:
                     words_oov += [[w, idx]]
 
-            if len(words_valid) > 0 or len(words_train) > 0:
+            if len(words_valid) > 0 or len(words_train) > 0 or len(words_oov) > 0:
                 sent_word_ids = dictionary.sent2idx(sent)
 
                 if len(words_valid) > 0:
@@ -126,11 +126,9 @@ class Corpus:
         print(f"Valid >0 ctxts size: {len([w for w in valid_dataset.keys() if len(valid_dataset[w]) > 0])}")
         print(f"OOV >0 ctxts size: {len([w for w in oov_words if len(oov_dataset[w]) > 0 ])}")
 
-        oov_ctxts_lens = [len(oov_dataset[w]) for w in oov_words]
         oov_word_counts = [word_count[w] for w in oov_words]
         inds = np.argsort(-np.array(oov_word_counts))[:10]
 
-        print(f"Number of OOV words with no. ctxts = index {[oov_ctxts_lens.count(i) for i in range(10)]}")
         print(f"Number of OOV words with count = index {[oov_word_counts.count(i) for i in range(10)]}")
         print(f"Most frequent OOV words: {[oov_words[i] for i in inds]} "
               f"frequencies: {[oov_word_counts[i] for i in inds]}")
