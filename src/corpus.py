@@ -130,8 +130,8 @@ class Corpus:
         oov_ctxts_lens = [len(oov_dataset[w]) for w in oov_dataset.keys()]
         oov_word_counts = [word_count[w] for w in oov_dataset.keys()]
         from itertools import groupby
-        [len(list(group)) for key, group in groupby(oov_word_counts)]
-        [len(list(group)) for key, group in groupby(oov_ctxts_lens)]
+        print([len(list(group)) for key, group in groupby(oov_word_counts)])
+        print([len(list(group)) for key, group in groupby(oov_ctxts_lens)])
 
         self.dictionary = dictionary
         self.train_dataset = train_dataset
