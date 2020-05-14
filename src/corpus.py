@@ -184,7 +184,7 @@ class Corpus:
         words = []
         contexts = []
         chars = []
-        for word in self.oov_dataset:
+        for word in dataset:
             if len(dataset[word]) < k_shot:
                 continue
             words.append(word)
