@@ -26,7 +26,7 @@ class Corpus:
                         corpus += [sent.replace('___', ' <unk> ').lower().split() for sent in fields[1].split('@@')]
             corpus = np.unique(corpus)
         elif is_jnlpba:
-            ps = ['train/Genia4ERtask1.iob2', 'test/Genia4EReval1.iob2']
+            ps = ['test/Genia4EReval1.iob2']
             corpus = []
             sent = []
             for p in ps:
