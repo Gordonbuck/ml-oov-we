@@ -51,13 +51,9 @@ class Corpus:
                 word_count[w] += 1
                 dictionary.add_word(w, w2v)
                 if w not in oov_dataset and w not in dictionary.word2idx:
-                    try:
-                        float(w)
-                        continue
-                    except ValueError:
-                        print(w)
-                        oov_words.append(w)
-                        oov_dataset[w] = [[], []]
+                    print(w)
+                    oov_words.append(w)
+                    oov_dataset[w] = [[], []]
 
         words = []
         for w in dictionary.word2idx:
