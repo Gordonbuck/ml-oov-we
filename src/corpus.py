@@ -122,9 +122,9 @@ class Corpus:
         print(f"Valid size: {len(valid_dataset.keys())}")
         print(f"OOV size: {len(oov_dataset.keys())}")
 
-        print(f"Train >0 ctxts size: {len([w if len(train_dataset[w]) > 0 for w in train_dataset.keys()])}")
-        print(f"Valid >0 ctxts size: {len([w if len(valid_dataset[w]) > 0 for w in valid_dataset.keys()])}")
-        print(f"OOV >0 ctxts size: {len([w if len(oov_dataset[w]) > 0 for w in oov_dataset.keys()])}")
+        print(f"Train >0 ctxts size: {len([w for w in train_dataset.keys() if len(train_dataset[w]) > 0])}")
+        print(f"Valid >0 ctxts size: {len([w for w in valid_dataset.keys() if len(valid_dataset[w]) > 0])}")
+        print(f"OOV >0 ctxts size: {len([w for w in oov_dataset.keys() if len(oov_dataset[w]) > 0 ])}")
 
         self.dictionary = dictionary
         self.train_dataset = train_dataset
