@@ -51,6 +51,8 @@ class Corpus:
                 word_count[w] += 1
                 dictionary.add_word(w, w2v)
                 if w not in oov_dataset and w not in dictionary.word2idx:
+                    if w in string.punctuation:
+                        continue
                     oov_words.append(w)
                     oov_dataset[w] = [[], []]
 
@@ -127,6 +129,7 @@ class Corpus:
 
         oov_ctxts_lens = [len(oov_dataset[w]) for w in oov_dataset.keys()]
         print([oov_ctxts_lens.count(i) for i in range(10)])
+        print(w2v['2'])
 
         self.dictionary = dictionary
         self.train_dataset = train_dataset
