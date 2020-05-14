@@ -131,6 +131,7 @@ class Corpus:
         oov_word_counts = [word_count[w] for w in oov_dataset.keys()]
         print([oov_ctxts_lens.count(i) for i in range(10)])
         print([oov_word_counts.count(i) for i in range(10)])
+        print(max([oov_word_counts.count(i) for i in range(10)]))
 
         self.dictionary = dictionary
         self.train_dataset = train_dataset
