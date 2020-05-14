@@ -14,6 +14,12 @@ if __name__ == '__main__':
     print("Loading oracle word embeddings")
     w2v = Word2Vec.load(args.w2v_dir)
 
+    a = Corpus(Path(args.jnlpba_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
+           corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len,
+           is_jnlpba=True)
+    exit(0)
+
+
     print("Loading Wikitext-103 corpus")
     wiki_corpus = Corpus(Path(args.wiki_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
                          corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len, is_wikitext=True)
