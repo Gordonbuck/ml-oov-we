@@ -3,6 +3,7 @@ import torch
 from scipy.stats import spearmanr
 from pathlib import Path
 
+
 class Dictionary(object):
     def __init__(self, n_hid):
         self.word2idx = {'<unk>': 0}
