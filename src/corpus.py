@@ -100,10 +100,9 @@ class Corpus:
 
                 if len(words_oov) > 0:
                     for w, idx in words_oov:
-                        if np.count_nonzero(sent_word_ids[idx - ctx_len: idx + 1 + ctx_len]) == 0:
-                            print(sent[idx - ctx_len: idx + 1 + ctx_len], len(sent), idx - ctx_len, idx + 1 + ctx_len)
-                        oov_dataset[w][0] += [sent_word_ids[idx - ctx_len: idx]]
-                        oov_dataset[w][1] += [sent_word_ids[idx + 1:  idx + 1 + ctx_len]]
+                        if np.count_nonzero(sent_word_ids[idx - ctx_len: idx + 1 + ctx_len]) > 0:
+                            oov_dataset[w][0] += [sent_word_ids[idx - ctx_len: idx]]
+                            oov_dataset[w][1] += [sent_word_ids[idx + 1:  idx + 1 + ctx_len]]
 
         for w in valid_dataset:
             lefts = pad_sequences(valid_dataset[w][0], max_len=ctx_len, value=pad, padding='pre', truncating='pre')
@@ -126,13 +125,15 @@ class Corpus:
 
         print(f"Train >0 ctxts size: {len([w for w in train_dataset.keys() if len(train_dataset[w]) > 0])}")
         print(f"Valid >0 ctxts size: {len([w for w in valid_dataset.keys() if len(valid_dataset[w]) > 0])}")
-        print(f"OOV >0 ctxts size: {len([w for w in oov_words if len(oov_dataset[w]) > 0 ])}")
+        print(f"OOV >0 ctxts size: {len([w for w in oov_words if len(oov_dataset[w]) > 0])}")
 
         train_ctxt_lens = [len(train_dataset[w]) for w in train_dataset.keys()]
         valid_ctxt_lens = [len(valid_dataset[w]) for w in valid_dataset.keys()]
+        oov_ctxt_lens = [len(oov_dataset[w]) for w in oov_words]
 
         print(f"Number of Train with ctxts size = index {[train_ctxt_lens.count(i) for i in range(10)]}")
         print(f"Number of Valid with ctxts size = index {[valid_ctxt_lens.count(i) for i in range(10)]}")
+        print(f"Number of OOV with ctxts size = index {[oov_ctxt_lens.count(i) for i in range(10)]}")
 
         oov_word_counts = [word_count[w] for w in oov_words]
         inds = np.argsort(-np.array(oov_word_counts))[:10]
