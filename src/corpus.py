@@ -122,8 +122,8 @@ class Corpus:
         print(f"Valid size: {len(valid_dataset.keys())}")
         print(f"OOV size: {len(oov_dataset.keys())}")
 
-        print(f"Train non-zero no. contexts size: {len([len(oov_dataset[w]) > 0 for w in train_dataset.keys()])}")
-        print(f"Valid non-zero no. contexts size: {len([len(oov_dataset[w]) > 0 for w in valid_dataset.keys()])}")
+        print(f"Train non-zero no. contexts size: {len([len(train_dataset[w]) > 0 for w in train_dataset.keys()])}")
+        print(f"Valid non-zero no. contexts size: {len([len(valid_dataset[w]) > 0 for w in valid_dataset.keys()])}")
         print(f"OOV non-zero no. contexts size: {len([len(oov_dataset[w]) > 0 for w in oov_dataset.keys()])}")
 
         self.dictionary = dictionary
