@@ -51,7 +51,6 @@ class Corpus:
                 word_count[w] += 1
                 dictionary.add_word(w, w2v)
                 if w not in oov_dataset and w not in dictionary.word2idx:
-                    print(w)
                     oov_words.append(w)
                     oov_dataset[w] = [[], []]
 
@@ -125,6 +124,9 @@ class Corpus:
         print(f"Train >0 ctxts size: {len([w for w in train_dataset.keys() if len(train_dataset[w]) > 0])}")
         print(f"Valid >0 ctxts size: {len([w for w in valid_dataset.keys() if len(valid_dataset[w]) > 0])}")
         print(f"OOV >0 ctxts size: {len([w for w in oov_dataset.keys() if len(oov_dataset[w]) > 0 ])}")
+
+        oov_ctxts_lens = [len(oov_dataset[w]) for w in oov_dataset.keys()]
+        print([oov_ctxts_lens.count(i) for i in range(10)])
 
         self.dictionary = dictionary
         self.train_dataset = train_dataset
