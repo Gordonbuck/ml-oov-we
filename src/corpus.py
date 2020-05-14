@@ -129,7 +129,6 @@ class Corpus:
 
         oov_ctxts_lens = [len(oov_dataset[w]) for w in oov_dataset.keys()]
         print([oov_ctxts_lens.count(i) for i in range(10)])
-        print(w2v['2'])
 
         self.dictionary = dictionary
         self.train_dataset = train_dataset
