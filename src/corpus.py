@@ -185,10 +185,10 @@ class Corpus:
         contexts = []
         chars = []
         for word in dataset:
-            if len(dataset[word]) < k_shot:
+            if fixed and len(dataset[word]) < k_shot:
                 continue
             words.append(word)
-            sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=False)
+            sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=not fixed)
             sents = dataset[word][sent_idx]
             contexts += [sents]
             chars += [[char2idx[c] for c in word if c in char2idx]]
