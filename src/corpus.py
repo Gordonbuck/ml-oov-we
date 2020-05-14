@@ -121,17 +121,20 @@ class Corpus:
 
         print(f"Train size: {len(train_dataset.keys())}")
         print(f"Valid size: {len(valid_dataset.keys())}")
-        print(f"OOV size: {len(oov_dataset.keys())}")
+        print(f"OOV size: {len(oov_words)}")
 
         print(f"Train >0 ctxts size: {len([w for w in train_dataset.keys() if len(train_dataset[w]) > 0])}")
         print(f"Valid >0 ctxts size: {len([w for w in valid_dataset.keys() if len(valid_dataset[w]) > 0])}")
-        print(f"OOV >0 ctxts size: {len([w for w in oov_dataset.keys() if len(oov_dataset[w]) > 0 ])}")
+        print(f"OOV >0 ctxts size: {len([w for w in oov_words if len(oov_dataset[w]) > 0 ])}")
 
-        oov_ctxts_lens = [len(oov_dataset[w]) for w in oov_dataset.keys()]
-        oov_word_counts = [word_count[w] for w in oov_dataset.keys()]
-        print([oov_ctxts_lens.count(i) for i in range(10)])
-        print([oov_word_counts.count(i) for i in range(10)])
-        print(max(oov_word_counts))
+        oov_ctxts_lens = [len(oov_dataset[w]) for w in oov_words]
+        oov_word_counts = [word_count[w] for w in oov_words]
+        inds = np.argsort(-oov_word_counts)[:10]
+
+        print(f"Number of OOV words with no. ctxts = index {[oov_ctxts_lens.count(i) for i in range(10)]}")
+        print(f"Number of OOV words with count = index {[oov_word_counts.count(i) for i in range(10)]}")
+        print(f"Most frequent OOV words: {[oov_words[i] for i in inds]} "
+              f"frequencies: {[oov_word_counts[i] for i in inds]}")
 
         self.dictionary = dictionary
         self.train_dataset = train_dataset
