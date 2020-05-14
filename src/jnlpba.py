@@ -22,7 +22,7 @@ def write_word_vecs(model, corpus, k_shot, char2idx, device, oov_wv_dir, model_n
     corpus.w2v.wv.save_word2vec_format(os.path.join(oov_wv_dir, f'oov_w2v_{model_name}'))
 
 
-def preprocess_jnlpba(jnlpba_dir, corpus):
+def preprocess_jnlpba(jnlpba_dir, corpus, k_shot):
     train = 0
     dev = 1
     train_size = 0
@@ -76,7 +76,7 @@ def preprocess_jnlpba(jnlpba_dir, corpus):
                 continue
 
             w_0 = w.split()[0].lower()
-            if w_0 in corpus.oov_dataset and len(corpus.oov_dataset[w_0]) > 0:
+            if w_0 in corpus.oov_dataset and len(corpus.oov_dataset[w_0]) >= k_shot:
                 contains_oov = True
 
             sent += [w]

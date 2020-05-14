@@ -66,6 +66,8 @@ if __name__ == '__main__':
 
             write_word_vecs(model, target_corpus, args.n_shot, char2idx, device, args.oov_wv_dir, name,
                             fixed=args.fixed_shot)
+
+        preprocess_jnlpba(Path(args.jnlpba_dir), target_corpus, args.n_shot)
     else:
         print("Loading Chimeras for evaluation")
         chimeras = Chimeras(Path(args.chimera_dir), w2v, wiki_corpus.dictionary, char2idx, ctx_len=args.ctx_len)
