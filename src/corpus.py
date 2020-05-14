@@ -126,6 +126,12 @@ class Corpus:
         print(f"Valid >0 ctxts size: {len([w for w in valid_dataset.keys() if len(valid_dataset[w]) > 0])}")
         print(f"OOV >0 ctxts size: {len([w for w in oov_words if len(oov_dataset[w]) > 0 ])}")
 
+        train_ctxt_lens = [len(train_dataset[w]) for w in train_dataset.keys()]
+        valid_ctxt_lens = [len(valid_dataset[w]) for w in valid_dataset.keys()]
+
+        print(f"Number of Train with ctxts size = index {[train_ctxt_lens.count(i) for i in range(10)]}")
+        print(f"Number of Valid with ctxts size = index {[valid_ctxt_lens.count(i) for i in range(10)]}")
+
         oov_word_counts = [word_count[w] for w in oov_words]
         inds = np.argsort(-np.array(oov_word_counts))[:10]
 
