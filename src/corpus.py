@@ -53,9 +53,8 @@ class Corpus:
                 if w not in oov_dataset and w not in dictionary.word2idx:
                     try:
                         float(w)
+                        continue
                     except ValueError:
-                        if w in string.punctuation:
-                            continue
                         print(w)
                         oov_words.append(w)
                         oov_dataset[w] = [[], []]
