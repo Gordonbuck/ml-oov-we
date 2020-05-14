@@ -26,7 +26,7 @@ class Corpus:
                         corpus += [sent.replace('___', ' <unk> ').lower().split() for sent in fields[1].split('@@')]
             corpus = np.unique(corpus)
         elif is_jnlpba:
-            ps = ['test/Genia4EReval1.iob2']
+            ps = ['train/Genia4ERtask1.iob2', 'test/Genia4EReval1.iob2']
             corpus = []
             sent = []
             for p in ps:
@@ -128,7 +128,10 @@ class Corpus:
         print(f"OOV >0 ctxts size: {len([w for w in oov_dataset.keys() if len(oov_dataset[w]) > 0 ])}")
 
         oov_ctxts_lens = [len(oov_dataset[w]) for w in oov_dataset.keys()]
-        print([oov_ctxts_lens.count(i) for i in range(10)])
+        oov_word_counts = [word_count[w] for w in oov_dataset.keys()]
+        from itertools import groupby
+        [len(list(group)) for key, group in groupby(oov_word_counts)]
+        [len(list(group)) for key, group in groupby(oov_ctxts_lens)]
 
         self.dictionary = dictionary
         self.train_dataset = train_dataset
@@ -179,15 +182,13 @@ class Corpus:
         contexts = []
         chars = []
         for word in self.oov_dataset:
-            if len(dataset[word]) > 0:
-                words.append(word)
-                if len(dataset[word]) >= k_shot:
-                    sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=False)
-                else:
-                    sent_idx = np.random.choice(len(dataset[word]), k_shot)
-                sents = dataset[word][sent_idx]
-                contexts += [sents]
-                chars += [[char2idx[c] for c in word if c in char2idx]]
+            if len(dataset[word]) < k_shot:
+                continue
+            words.append(word)
+            sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=False)
+            sents = dataset[word][sent_idx]
+            contexts += [sents]
+            chars += [[char2idx[c] for c in word if c in char2idx]]
         contexts = torch.tensor(contexts).to(device)
         chars = torch.tensor(pad_sequences(chars, max_len=2 * self.ctx_len)).to(device)
         return words, contexts, chars
