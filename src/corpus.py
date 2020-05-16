@@ -41,9 +41,9 @@ class Corpus:
                     w = w.strip().lower()
                     if w != '':
                         w = w.split()
-                        if len(w) == 2:
-                            w = w[0]
-                            sent += [w]
+                        w = w[0]
+                        sent += [w]
+                corpus += [sent]
             corpus = np.array(corpus)
         print(f"Corpus shape: {corpus.shape}")
 
