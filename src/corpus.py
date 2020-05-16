@@ -44,6 +44,7 @@ class Corpus:
                         w = w[0]
                         sent += [w]
                 corpus += [sent]
+                corpus += [sent]
             corpus = np.array(corpus)
         print(f"Corpus shape: {corpus.shape}")
 
