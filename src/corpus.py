@@ -26,16 +26,20 @@ class Corpus:
                         corpus += [sent.replace('___', ' <unk> ').lower().split() for sent in fields[1].split('@@')]
             corpus = np.unique(corpus)
         elif is_jnlpba:
-            ps = ['train/Genia4ERtask1.iob2', 'test/Genia4EReval1.iob2']
+            ps = ['train/Genia4ERtask2.iob2', 'test/Genia4EReval2.iob2']
             corpus = []
             sent = []
             for p in ps:
                 for w in (corpus_dir / p).open().readlines():
-                    w = w.strip().lower()
-                    if w == '':
-                        corpus += [sent]
+                    if w.startswith("###MEDLINE:"):
+                        if sent:
+                            print(sent)
+                            corpus += [sent]
                         sent = []
-                    else:
+                        continue
+
+                    w = w.strip().lower()
+                    if w != '':
                         w = w.split()
                         if len(w) == 2:
                             w = w[0]
