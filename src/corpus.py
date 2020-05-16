@@ -34,6 +34,7 @@ class Corpus:
                     if w.startswith("###MEDLINE:"):
                         if sent:
                             corpus += [sent]
+                            print(sent)
                         sent = []
                         continue
 
@@ -42,10 +43,9 @@ class Corpus:
                         w = w.split()
                         w = w[0]
                         sent += [w]
-                    corpus += [sent]
+                print(sent)
+                corpus += [sent]
             corpus = np.array(corpus)
-            for c in corpus:
-                print(c)
         print(f"Corpus shape: {corpus.shape}")
 
         word_count = defaultdict(int)
