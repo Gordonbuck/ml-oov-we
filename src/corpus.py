@@ -33,7 +33,6 @@ class Corpus:
                 for w in (corpus_dir / p).open().readlines():
                     if w.startswith("###MEDLINE:"):
                         if sent:
-                            print(sent)
                             corpus += [sent]
                         sent = []
                         continue
@@ -43,8 +42,10 @@ class Corpus:
                         w = w.split()
                         w = w[0]
                         sent += [w]
-            corpus += [sent]
+                    corpus += [sent]
             corpus = np.array(corpus)
+            for c in corpus:
+                print(c)
         print(f"Corpus shape: {corpus.shape}")
 
         word_count = defaultdict(int)
