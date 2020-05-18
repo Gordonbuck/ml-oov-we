@@ -14,6 +14,9 @@ if __name__ == '__main__':
     print("Loading oracle word embeddings")
     w2v = Word2Vec.load(args.w2v_dir)
 
+    w2v.wv.save_word2vec_format(os.path.join(args.oov_wv_dir, f'wiki_w2v'))
+    exit(0)
+
     print("Loading Wikitext-103 corpus")
     wiki_corpus = Corpus(Path(args.wiki_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
                          corpus_lbound=args.corpus_lbound, ctx_len=args.ctx_len, is_wikitext=True)
