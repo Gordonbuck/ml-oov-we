@@ -172,7 +172,7 @@ class HICE(nn.Module):
             x = layer(x, mask=mask)
 
         if train_lang_model:
-            lm_out = self.lang_model(x.clone().detach(), mask)
+            lm_out = self.lang_model(x, mask)
 
         mask = mask.squeeze(-3)
         x = torch.sum(x * mask, dim=-2) / torch.sum(mask, dim=-2)

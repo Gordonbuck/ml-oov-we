@@ -30,11 +30,11 @@ def train(model, source_corpus, char2idx, args, device):
             if args.active_learning:
                 pred_emb, pred_ind = model.forward(train_contexts, train_vocabs, train_lang_model=args.active_learning)
                 loss = nn.functional.cross_entropy(pred_ind, train_inds)
-                loss.backward()
+                loss += -nn.functional.cosine_similarity(pred_emb, train_targets).mean()
             else:
                 pred_emb = model.forward(train_contexts, train_vocabs)
+                loss = -nn.functional.cosine_similarity(pred_emb, train_targets).mean()
 
-            loss = -nn.functional.cosine_similarity(pred_emb, train_targets).mean()
             loss.backward()
             optimizer.step()
 
