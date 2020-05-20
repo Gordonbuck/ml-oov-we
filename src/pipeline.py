@@ -20,7 +20,7 @@ if __name__ == '__main__':
     char2idx = {c: i+1 for i, c in enumerate('abcdefghijklmnopqrstuvwxyz')}
     device = torch.device(f'cuda:{args.cuda}' if args.cuda != -1 else 'cpu')
     model = HICE(args.n_head, w2v.vector_size, 2 * args.ctx_len, args.n_layer, wiki_corpus.dictionary.idx2vec,
-                 use_morph=args.use_morph)
+                 wiki_corpus.dictionary.len, use_morph=args.use_morph)
 
     if args.adapt_jnlpba:
         print("Loading JNLPBA corpus")
