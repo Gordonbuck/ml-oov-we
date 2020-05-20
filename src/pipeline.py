@@ -38,16 +38,16 @@ if __name__ == '__main__':
         print("Training")
         train(model, wiki_corpus, char2idx, args, device)
 
-    model.lang_model_requires_grad(False)
-
     if args.maml:
         print("MAML adaptation")
         model.load_state_dict(torch.load(os.path.join(args.save_dir, 'model.pt')))
+        model.lang_model_requires_grad(False)
         maml_adapt(model, wiki_corpus, target_corpus, char2idx, args, device)
 
     if args.leap:
         print("LEAP adaptation")
         model.load_state_dict(torch.load(os.path.join(args.save_dir, 'model.pt')))
+        model.lang_model_requires_grad(False)
         leap_adapt(model, wiki_corpus, target_corpus, char2idx, args, device)
 
     if args.adapt_jnlpba:
