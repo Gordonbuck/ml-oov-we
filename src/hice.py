@@ -152,6 +152,10 @@ class HICE(nn.Module):
 
         return self.lang_model(x, mask)
 
+    def lang_model_requires_grad(self, requires):
+        self.lang_model_enc.requires_grad = requires
+        self.lang_model_out.requires_grad = requires
+
     def forward(self, contexts, chars=None, pad=0, train_lang_model=False):
         # contexts : B (batch size) * K (num contexts) * L (max num words in context) : contains word indices
         # vocabs : B (batch size) * W (max number of characters in target words) : contains character indices
