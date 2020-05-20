@@ -172,7 +172,7 @@ class Corpus:
         return dataset, k2words[k]
 
     def get_batch(self, batch_size, k_shot, char2idx, device, use_valid=False, fixed=True, repeat_ctxs=False,
-                  return_inds=False, lang_model=None):
+                  return_inds=False, lang_model=None, lang_model_n_words=0):
         if not fixed:
             k_shot = np.random.randint(k_shot) + 1
         dataset, words = self._get_words(k_shot, use_valid, repeat_ctxs)
@@ -182,7 +182,7 @@ class Corpus:
         chars = []
         inds = []
         for word in sample_words:
-            if lang_model is None:
+            if lang_model is None or self.dictionary.word2idx[word] >= lang_model_n_words:
                 sample_sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=repeat_ctxs)
                 sample_sents = dataset[word][sample_sent_idx]
             else:

@@ -104,7 +104,8 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
 
                     target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
                         args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot,
-                        repeat_ctxs=args.meta_repeat_ctxs, lang_model=model if args.active_learning else None)
+                        repeat_ctxs=args.meta_repeat_ctxs, lang_model=model if args.active_learning else None,
+                        lang_model_n_words=source_corpus.dictionary.len)
                     pred_emb = fmodel.forward(target_train_contexts, target_train_vocabs)
                     loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                     loss.backward()
@@ -177,7 +178,8 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                 inner_optimizer.zero_grad()
                 target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
                     args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot,
-                    repeat_ctxs=args.meta_repeat_ctxs, lang_model=model if args.active_learning else None)
+                    repeat_ctxs=args.meta_repeat_ctxs, lang_model=model if args.active_learning else None,
+                    lang_model_n_words=source_corpus.dictionary.len)
                 pred_emb = model.forward(target_train_contexts, target_train_vocabs)
                 loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                 loss.backward()
