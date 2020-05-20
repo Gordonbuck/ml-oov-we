@@ -164,7 +164,7 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             for inner_batch in np.arange(args.n_task_steps):
                 inner_optimizer.zero_grad()
                 source_train_contexts, source_train_targets, source_train_vocabs = source_corpus.get_batch(
-                        args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shots)
+                        args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot)
                 pred_emb = model.forward(source_train_contexts, source_train_vocabs)
                 loss = -nn.functional.cosine_similarity(pred_emb, source_train_targets).mean()
                 loss.backward()
