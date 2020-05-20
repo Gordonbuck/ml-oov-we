@@ -189,7 +189,7 @@ class Corpus:
                     sample_sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=repeat_ctxs)
                     sample_sents = dataset[word][sample_sent_idx]
                 else:
-                    dataset_words = torch.tensor(dataset[word]).to(device)
+                    dataset_words = torch.tensor(dataset[word]).unsqueeze(dim=1).to(device)
                     log_probs = nn.functional.log_softmax(lang_model.lang_model_forward(dataset_words), dim=1)
                     log_probs = log_probs.cpu().numpy()[:, self.dictionary.word2idx[word]]
                     sample_sent_idx = np.argsort(log_probs)[:k_shot]
