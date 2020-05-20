@@ -104,7 +104,7 @@ class CharacterCNN(nn.Module):
 
 
 class HICE(nn.Module):
-    def __init__(self, n_head, n_hid, n_seq, n_layer, idx2vec, use_morph=True, emb_tunable=False):
+    def __init__(self, n_head, n_hid, n_seq, n_layer, idx2vec, n_words, use_morph=True, emb_tunable=False):
         super(HICE, self).__init__()
         self.n_hid = n_hid  # H
         self.n_seq = n_seq  # L
@@ -121,6 +121,9 @@ class HICE(nn.Module):
         self.out = nn.Linear(n_hid, n_hid)
         self.bal = nn.Parameter(torch.ones(2) / 10.)
 
+        self.lang_model_enc = SelfAttentionFFN(n_head, n_hid)
+        self.lang_model_out = nn.Linear(n_hid, n_words)
+
     def update_embedding(self, idx2vec, init=False):
         target = torch.tensor(idx2vec, dtype=torch.float)
         if not init:
@@ -129,7 +132,27 @@ class HICE(nn.Module):
         self.emb.weight = nn.Parameter(target)
         self.emb.weight.requires_grad = self.emb_tunable
 
-    def forward(self, contexts, chars=None, pad=0):
+    def lang_model(self, contexts, mask):
+        # contexts : (B * K) * L * H
+        x = self.lang_model_enc(contexts, mask=mask)
+        mask = mask.squeeze(-3)
+        x = torch.sum(x * mask, dim=-2) / torch.sum(mask, dim=-2)  # (B * K) * H
+        return self.lang_model_out(x)
+
+    def lang_model_forward(self, contexts, pad=0):
+        x = self.pos_att(self.emb(contexts))  # B * K * L * H (word emb size)
+        mask = (contexts != pad).float().unsqueeze(-2).unsqueeze(-1)  # B * K * 1 * L * 1
+
+        # apply SA and FFN to each context
+        x = x.view(-1, x.size(-2), x.size(-1))  # (B * K) * L * H
+        mask = mask.view(-1, 1, mask.size(-2), 1)  # (B * K) * 1 * L * 1
+
+        for layer in self.ce_layers:
+            x = layer(x, mask=mask)
+
+        return self.lang_model(x, mask)
+
+    def forward(self, contexts, chars=None, pad=0, train_lang_model=False):
         # contexts : B (batch size) * K (num contexts) * L (max num words in context) : contains word indices
         # vocabs : B (batch size) * W (max number of characters in target words) : contains character indices
         x = self.pos_att(self.emb(contexts))  # B * K * L * H (word emb size)
@@ -141,6 +164,11 @@ class HICE(nn.Module):
 
         for layer in self.ce_layers:
             x = layer(x, mask=mask)
+
+        if train_lang_model:
+            t = torch.empty_like(x)
+            lm_out = self.lang_model(t.new_tensor(x), mask)
+
         mask = mask.squeeze(-3)
         x = torch.sum(x * mask, dim=-2) / torch.sum(mask, dim=-2)
         x = x.view(contexts.size(0), contexts.size(1), -1)  # B * K * H
@@ -156,4 +184,7 @@ class HICE(nn.Module):
         else:
             x = x.mean(dim=1)  # B * H
 
-        return self.out(x)
+        if train_lang_model:
+            return self.out(x), lm_out
+        else:
+            return self.out(x)

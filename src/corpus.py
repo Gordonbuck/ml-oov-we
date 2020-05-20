@@ -3,6 +3,7 @@ import torch
 from collections import defaultdict
 from utils import pad_sequences, Dictionary
 import string
+import torch.nn as nn
 
 
 class Corpus:
@@ -18,12 +19,15 @@ class Corpus:
             corpus = np.array(corpus)
         elif is_chimera:
             corpus = []
-            for k in [2, 4, 6]:
-                with (corpus_dir / f'data.l{k}.txt').open() as f:
-                    lines = f.readlines()
-                    for l in lines:
-                        fields = l.rstrip('\n').split('\t')
-                        corpus += [sent.replace('___', ' <unk> ').lower().split() for sent in fields[1].split('@@')]
+            with (corpus_dir / 'dataset.txt').open() as f:
+                lines = f.readlines()[1:]
+                for i in range(0, len(lines), 2):
+                    fields = lines[i].rstrip('\n').split('\t')
+                    nonce = fields[1].lower()
+                    sents = fields[3].lower().split('@@')
+                    pivot_comp = lines[i+1].split('\t')[5].lower().split('_')
+                    corpus += [sent.replace(nonce, pivot_comp[0 if i % 2 == 0 else 1]).split()
+                               for i, sent in enumerate(sents)]
             corpus = np.unique(corpus)
         elif is_jnlpba:
             ps = ['train/Genia4ERtask2.iob2', 'test/Genia4EReval2.iob2']
@@ -167,7 +171,8 @@ class Corpus:
             k2words[k] = [w for w in words if len(dataset[w]) >= k]
         return dataset, k2words[k]
 
-    def get_batch(self, batch_size, k_shot, char2idx, device, use_valid=False, fixed=True, repeat_ctxs=False):
+    def get_batch(self, batch_size, k_shot, char2idx, device, use_valid=False, fixed=True, repeat_ctxs=False,
+                  return_inds=False, lang_model=None):
         if not fixed:
             k_shot = np.random.randint(k_shot) + 1
         dataset, words = self._get_words(k_shot, use_valid, repeat_ctxs)
@@ -175,16 +180,28 @@ class Corpus:
         contexts = []
         targets = []
         chars = []
+        inds = []
         for word in sample_words:
-            sample_sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=repeat_ctxs)
-            sample_sents = dataset[word][sample_sent_idx]
+            if lang_model is None:
+                sample_sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=repeat_ctxs)
+                sample_sents = dataset[word][sample_sent_idx]
+            else:
+                log_probs = nn.functional.log_softmax(lang_model.lang_model_forward(dataset[word]), dim=1)
+                log_probs = log_probs.cpu().numpy()[:, self.dictionary.word2idx[word]]
+                sample_sent_idx = np.argsort(log_probs)[:k_shot]
+                sample_sents = dataset[word][sample_sent_idx]
             contexts += [sample_sents]
             targets += [self.w2v.wv[word]]
             chars += [[char2idx[c] for c in word if c in char2idx]]
+            inds += [self.dictionary.word2idx[word] for i in range(k_shot)]
         contexts = torch.tensor(contexts).to(device)
         targets = torch.tensor(targets).to(device)
         chars = torch.tensor(pad_sequences(chars, max_len=2*self.ctx_len)).to(device)
-        return contexts, targets, chars
+        if return_inds:
+            inds = torch.tensor(inds).to(device)
+            return contexts, targets, chars, inds
+        else:
+            return contexts, targets, chars
 
     def get_oov_contexts(self, k_shot, char2idx, device, fixed=True):
         if not fixed:

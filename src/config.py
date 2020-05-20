@@ -81,6 +81,10 @@ parser.add_argument('--n_meta_epochs', type=int, default=100,
                     help='upper bound of meta training epochs')
 parser.add_argument('--n_meta_batch', type=int, default=16,
                     help='number of batches in meta loop')
+parser.add_argument('--meta_repeat_ctxs', action='store_true',
+                    help='allowed repeated context in meta-training')
+parser.add_argument('--active_learning', action='store_true',
+                    help='use active learning with meta-learning')
 
 '''
     MAML
