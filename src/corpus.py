@@ -175,6 +175,8 @@ class Corpus:
                   return_inds=False, lang_model=None, lang_model_n_words=0):
         if not fixed:
             k_shot = np.random.randint(k_shot) + 1
+        if lang_model is not None:
+            lang_model.eval()
         dataset, words = self._get_words(k_shot, use_valid, repeat_ctxs)
         sample_words = np.random.choice(words, batch_size)
         contexts = []
@@ -198,6 +200,8 @@ class Corpus:
         contexts = torch.tensor(contexts).to(device)
         targets = torch.tensor(targets).to(device)
         chars = torch.tensor(pad_sequences(chars, max_len=2*self.ctx_len)).to(device)
+        if lang_model is not None:
+            lang_model.train()
         if return_inds:
             inds = torch.tensor(inds).to(device)
             return contexts, targets, chars, inds
