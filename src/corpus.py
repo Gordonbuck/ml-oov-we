@@ -181,19 +181,20 @@ class Corpus:
         targets = []
         chars = []
         inds = []
-        for word in sample_words:
-            if lang_model is None or self.dictionary.word2idx[word] >= lang_model_n_words:
-                sample_sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=repeat_ctxs)
-                sample_sents = dataset[word][sample_sent_idx]
-            else:
-                log_probs = nn.functional.log_softmax(lang_model.lang_model_forward(dataset[word]), dim=1)
-                log_probs = log_probs.cpu().numpy()[:, self.dictionary.word2idx[word]]
-                sample_sent_idx = np.argsort(log_probs)[:k_shot]
-                sample_sents = dataset[word][sample_sent_idx]
-            contexts += [sample_sents]
-            targets += [self.w2v.wv[word]]
-            chars += [[char2idx[c] for c in word if c in char2idx]]
-            inds += [self.dictionary.word2idx[word] for i in range(k_shot)]
+        with torch.no_grad():
+            for word in sample_words:
+                if lang_model is None or self.dictionary.word2idx[word] >= lang_model_n_words:
+                    sample_sent_idx = np.random.choice(len(dataset[word]), k_shot, replace=repeat_ctxs)
+                    sample_sents = dataset[word][sample_sent_idx]
+                else:
+                    log_probs = nn.functional.log_softmax(lang_model.lang_model_forward(dataset[word]), dim=1)
+                    log_probs = log_probs.cpu().numpy()[:, self.dictionary.word2idx[word]]
+                    sample_sent_idx = np.argsort(log_probs)[:k_shot]
+                    sample_sents = dataset[word][sample_sent_idx]
+                contexts += [sample_sents]
+                targets += [self.w2v.wv[word]]
+                chars += [[char2idx[c] for c in word if c in char2idx]]
+                inds += [self.dictionary.word2idx[word] for i in range(k_shot)]
         contexts = torch.tensor(contexts).to(device)
         targets = torch.tensor(targets).to(device)
         chars = torch.tensor(pad_sequences(chars, max_len=2*self.ctx_len)).to(device)
