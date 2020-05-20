@@ -154,9 +154,9 @@ class HICE(nn.Module):
 
     def lang_model_requires_grad(self, requires):
         for param in self.lang_model_enc.parameters():
-            param.requires_grad = False
+            param.requires_grad = requires
         for param in self.lang_model_out.parameters():
-            param.requires_grad = False
+            param.requires_grad = requires
 
     def forward(self, contexts, chars=None, pad=0, train_lang_model=False):
         # contexts : B (batch size) * K (num contexts) * L (max num words in context) : contains word indices
