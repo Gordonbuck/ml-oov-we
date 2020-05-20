@@ -76,7 +76,7 @@ def train(model, source_corpus, char2idx, args, device):
             break
 
 
-def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
+def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device, lang_model_n_words=0):
     model = model.to(device)
     meta_optimizer = torch.optim.Adam(model.parameters(), lr=args.maml_meta_lr_init)
     lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(meta_optimizer, factor=args.lr_decay,
@@ -105,7 +105,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                     target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
                         args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot,
                         repeat_ctxs=args.meta_repeat_ctxs, lang_model=model if args.active_learning else None,
-                        lang_model_n_words=source_corpus.dictionary.len)
+                        lang_model_n_words=lang_model_n_words)
                     pred_emb = fmodel.forward(target_train_contexts, target_train_vocabs)
                     loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                     loss.backward()
@@ -142,7 +142,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device):
             break
 
 
-def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
+def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device, lang_model_n_words=0):
     model = model.to(device)
     leap = Leap(model)
     meta_optimizer = torch.optim.Adam(leap.parameters(), lr=args.leap_meta_lr_init)
@@ -179,7 +179,7 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device):
                 target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
                     args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot,
                     repeat_ctxs=args.meta_repeat_ctxs, lang_model=model if args.active_learning else None,
-                    lang_model_n_words=source_corpus.dictionary.len)
+                    lang_model_n_words=lang_model_n_words)
                 pred_emb = model.forward(target_train_contexts, target_train_vocabs)
                 loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                 loss.backward()
