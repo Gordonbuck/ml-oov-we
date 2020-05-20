@@ -19,7 +19,7 @@ class Corpus:
             corpus = np.array(corpus)
         elif is_chimera:
             corpus = []
-            with (corpus_dir / 'dataset.txt').open() as f:
+            with (corpus_dir / 'dataset.txt').open(encoding='latin1') as f:
                 lines = f.readlines()[1:]
                 for i in range(0, len(lines), 2):
                     fields = lines[i].rstrip('\n').split('\t')
