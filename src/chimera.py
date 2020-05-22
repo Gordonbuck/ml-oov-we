@@ -53,7 +53,7 @@ class Chimeras:
         self.chimera_data = chimera_data
         self.w2v = w2v
 
-    def eval(self, model, device, k_shot=None):
+    def eval(self, model, device, k_shot=None, lang_model=False):
         model.to(device)
 
         if k_shot is None:

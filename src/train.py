@@ -27,8 +27,8 @@ def train(model, source_corpus, char2idx, args, device):
                                                                                               return_inds=True)
             optimizer.zero_grad()
 
-            if args.active_learning:
-                pred_emb, pred_ind = model.forward(train_contexts, train_vocabs, train_lang_model=args.active_learning)
+            if args.lang_model:
+                pred_emb, pred_ind = model.forward(train_contexts, train_vocabs, lang_model=args.lang_model)
                 loss = nn.functional.cross_entropy(pred_ind, train_inds)
                 loss += -nn.functional.cosine_similarity(pred_emb, train_targets).mean()
             else:
@@ -47,9 +47,8 @@ def train(model, source_corpus, char2idx, args, device):
                                                                                                   use_valid=True,
                                                                                                   fixed=args.fixed_shot,
                                                                                                   return_inds=True)
-                if args.active_learning:
-                    pred_emb, pred_ind = model.forward(valid_contexts, valid_vocabs,
-                                                       train_lang_model=args.active_learning)
+                if args.lang_model:
+                    pred_emb, pred_ind = model.forward(valid_contexts, valid_vocabs, lang_model=args.lang_model)
                     loss = nn.functional.cross_entropy(pred_ind, valid_inds).mean()
                     valid_ce += [loss.cpu().numpy()]
                 else:
@@ -61,7 +60,7 @@ def train(model, source_corpus, char2idx, args, device):
         avg_valid = np.average(valid_cosine)
         lr_scheduler.step(avg_valid)
 
-        if args.active_learning:
+        if args.lang_model:
             avg_ce = np.average(valid_ce)
             print(f"Average cosine loss: {avg_valid}; Average cross entropy loss: {avg_ce}")
         else:
@@ -104,8 +103,7 @@ def maml_adapt(model, source_corpus, target_corpus, char2idx, args, device, lang
 
                     target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
                         args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot,
-                        repeat_ctxs=args.meta_repeat_ctxs, lang_model=model if args.active_learning else None,
-                        lang_model_n_words=lang_model_n_words)
+                        repeat_ctxs=args.meta_repeat_ctxs)
                     pred_emb = fmodel.forward(target_train_contexts, target_train_vocabs)
                     loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                     loss.backward()
@@ -178,8 +176,7 @@ def leap_adapt(model, source_corpus, target_corpus, char2idx, args, device, lang
                 inner_optimizer.zero_grad()
                 target_train_contexts, target_train_targets, target_train_vocabs = target_corpus.get_batch(
                     args.meta_batch_size, args.n_shot, char2idx, device, fixed=args.fixed_shot,
-                    repeat_ctxs=args.meta_repeat_ctxs, lang_model=model if args.active_learning else None,
-                    lang_model_n_words=lang_model_n_words)
+                    repeat_ctxs=args.meta_repeat_ctxs)
                 pred_emb = model.forward(target_train_contexts, target_train_vocabs)
                 loss = -nn.functional.cosine_similarity(pred_emb, target_train_targets).mean()
                 loss.backward()

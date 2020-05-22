@@ -73,6 +73,8 @@ parser.add_argument('--maml', action='store_true',
                     help='adapt to target dataset with MAML')
 parser.add_argument('--leap', action='store_true',
                     help='adapt to target dataset with leap')
+parser.add_argument('--lang_model', action='store_true',
+                    help='train language model')
 parser.add_argument('--adapt_jnlpba', action='store_true',
                     help='adapt to jnlpba instead of chimera')
 parser.add_argument('--meta_batch_size', type=int, default=128,
@@ -83,8 +85,6 @@ parser.add_argument('--n_meta_batch', type=int, default=16,
                     help='number of batches in meta loop')
 parser.add_argument('--meta_repeat_ctxs', action='store_true',
                     help='allowed repeated context in meta-training')
-parser.add_argument('--active_learning', action='store_true',
-                    help='use active learning with meta-learning')
 
 '''
     MAML

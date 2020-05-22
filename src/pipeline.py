@@ -22,8 +22,6 @@ if __name__ == '__main__':
     model = HICE(args.n_head, w2v.vector_size, 2 * args.ctx_len, args.n_layer, wiki_corpus.dictionary.idx2vec,
                  wiki_corpus.dictionary.len, use_morph=args.use_morph)
 
-    lang_model_n_words = wiki_corpus.dictionary.len
-
     if args.adapt_jnlpba:
         print("Loading JNLPBA corpus")
         target_corpus = Corpus(Path(args.jnlpba_dir), w2v, w2v_lbound=args.w2v_lbound, w2v_ubound=args.w2v_ubound,
@@ -44,13 +42,13 @@ if __name__ == '__main__':
         print("MAML adaptation")
         model.load_state_dict(torch.load(os.path.join(args.save_dir, 'model.pt')))
         model.lang_model_requires_grad(False)
-        maml_adapt(model, wiki_corpus, target_corpus, char2idx, args, device, lang_model_n_words=lang_model_n_words)
+        maml_adapt(model, wiki_corpus, target_corpus, char2idx, args, device)
 
     if args.leap:
         print("LEAP adaptation")
         model.load_state_dict(torch.load(os.path.join(args.save_dir, 'model.pt')))
         model.lang_model_requires_grad(False)
-        leap_adapt(model, wiki_corpus, target_corpus, char2idx, args, device, lang_model_n_words=lang_model_n_words)
+        leap_adapt(model, wiki_corpus, target_corpus, char2idx, args, device)
 
     if args.adapt_jnlpba:
         print("Exporting word vectors to file")
