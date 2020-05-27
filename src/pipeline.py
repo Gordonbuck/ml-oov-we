@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from config import parser
 import torch
 from hice import HICE
