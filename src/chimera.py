@@ -15,10 +15,10 @@ class Chimeras:
                 else:
                     correct[nonce] = line.split('\t')[5].split('_')
 
-        fields = ['contexts', 'pivot_vector', 'pivot', 'character', 'probes', 'scores', 'text']
+        columns = ['contexts', 'pivot_vector', 'pivot', 'character', 'probes', 'scores', 'text']
         chimera_data = {}
         for k in [2, 4, 6]:
-            chimera_data[k] = {field: [] for field in fields}
+            chimera_data[k] = {column: [] for column in columns}
             lefts, rights = [], []
 
             with (chimera_dir / f'data.l{k}.txt').open() as f:
