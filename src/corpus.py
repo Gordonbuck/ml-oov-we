@@ -3,7 +3,6 @@ import torch
 from collections import defaultdict
 from utils import pad_sequences, Dictionary
 import string
-import torch.nn as nn
 
 
 class Corpus:
@@ -112,18 +111,18 @@ class Corpus:
                             oov_dataset[w][1] += [sent_word_ids[idx + 1:  idx + 1 + ctx_len]]
 
         for w in valid_dataset:
-            lefts = pad_sequences(valid_dataset[w][0], max_len=ctx_len, value=pad, padding='pre', truncating='pre')
-            rights = pad_sequences(valid_dataset[w][1], max_len=ctx_len, value=pad, padding='post', truncating='post')
+            lefts = pad_sequences(valid_dataset[w][0], max_len=ctx_len, pad=pad, pre=True)
+            rights = pad_sequences(valid_dataset[w][1], max_len=ctx_len, pad=pad, pre=False)
             valid_dataset[w] = np.concatenate((lefts, rights), axis=1)
 
         for w in train_dataset:
-            lefts = pad_sequences(train_dataset[w][0], max_len=ctx_len, value=pad, padding='pre', truncating='pre')
-            rights = pad_sequences(train_dataset[w][1], max_len=ctx_len, value=pad, padding='post', truncating='post')
+            lefts = pad_sequences(train_dataset[w][0], max_len=ctx_len, pad=pad, pre=True)
+            rights = pad_sequences(train_dataset[w][1], max_len=ctx_len, pad=pad, pre=False)
             train_dataset[w] = np.concatenate((lefts, rights), axis=1)
 
         for w in oov_dataset:
-            lefts = pad_sequences(oov_dataset[w][0], max_len=ctx_len, value=pad, padding='pre', truncating='pre')
-            rights = pad_sequences(oov_dataset[w][1], max_len=ctx_len, value=pad, padding='post', truncating='post')
+            lefts = pad_sequences(oov_dataset[w][0], max_len=ctx_len, pad=pad, pre=True)
+            rights = pad_sequences(oov_dataset[w][1], max_len=ctx_len, pad=pad, pre=False)
             oov_dataset[w] = np.concatenate((lefts, rights), axis=1)
 
         print(f"Train size: {len(train_dataset.keys())}")
@@ -190,7 +189,7 @@ class Corpus:
             inds += [self.dictionary.word2idx[word] for i in range(k_shot)]
         contexts = torch.tensor(contexts).to(device)
         targets = torch.tensor(targets).to(device)
-        chars = torch.tensor(pad_sequences(chars, max_len=2*self.ctx_len)).to(device)
+        chars = torch.tensor(pad_sequences(chars, max_len=2*self.ctx_len, pre=True)).to(device)
         if return_inds:
             inds = torch.tensor(inds).to(device)
             return contexts, targets, chars, inds
@@ -213,5 +212,5 @@ class Corpus:
             contexts += [sents]
             chars += [[char2idx[c] for c in word if c in char2idx]]
         contexts = torch.tensor(contexts).to(device)
-        chars = torch.tensor(pad_sequences(chars, max_len=2 * self.ctx_len)).to(device)
+        chars = torch.tensor(pad_sequences(chars, max_len=2*self.ctx_len, pre=True)).to(device)
         return words, contexts, chars

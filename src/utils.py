@@ -28,45 +28,13 @@ class Dictionary(object):
         return [self.word2idx[w] if w in self.word2idx else 0 for w in x]
 
 
-def pad_sequences(sequences, max_len=None, padding='pre', truncating='pre', value=0., dtype=np.int64):
-    num_samples = len(sequences)
-
-    lengths = []
-    for x in sequences:
-        lengths.append(len(x))
-
-    if max_len is None:
-        max_len = np.max(lengths)
-
-    sample_shape = tuple()
-    for s in sequences:
-        if len(s) > 0:
-            sample_shape = np.asarray(s).shape[1:]
-            break
-
-    x = np.full((num_samples, max_len) + sample_shape, value, dtype=dtype)
+def pad_sequences(sequences, max_len, pre=True, pad=0.):
+    x = np.full((len(sequences), max_len), pad)
     for idx, s in enumerate(sequences):
-        if not len(s):
-            continue
-        if truncating == 'pre':
-            trunc = s[-max_len:]
-        elif truncating == 'post':
-            trunc = s[:max_len]
+        if pre:
+            x[idx, -min(max_len, len(s)):] = np.array(s[-max_len:])
         else:
-            raise ValueError(f'Truncating type "{truncating}" not understood')
-
-        trunc = np.asarray(trunc, dtype=dtype)
-        if trunc.shape[1:] != sample_shape:
-            raise ValueError(f'Shape of sample {trunc.shape[1:]} of sequence at position {idx} is different from '
-                             f'expected shape {sample_shape}')
-
-        if padding == 'pre':
-            x[idx, -len(trunc):] = trunc
-        elif padding == 'post':
-            x[idx, :len(trunc)] = trunc
-        else:
-            raise ValueError(f'Padding type "{padding}" not understood')
-
+            x[idx, :min(max_len, len(s))] = np.array(s[:max_len])
     return x
 
 

@@ -9,24 +9,20 @@ class Chimeras:
     def __init__(self, chimera_dir, w2v, dictionary, char2idx, ctx_len=12, pad=0):
         correct = {}
         with (chimera_dir / 'dataset.txt').open(encoding='latin1') as f:
-            ser = 0
-            for line in f.readlines()[1:]:
-                if ser % 2 == 0:
+            for i, line in enumerate(f.readlines()[1:]):
+                if i % 2 == 0:
                     nonce = line[:line.find('_')]
                 else:
                     correct[nonce] = line.split('\t')[5].split('_')
-                ser += 1
 
-        columns = ['contexts', 'ground_truth_vector', 'target_word', 'character', 'probes', 'scores', 'text']
+        fields = ['contexts', 'pivot_vector', 'pivot', 'character', 'probes', 'scores', 'text']
         chimera_data = {}
         for k in [2, 4, 6]:
-            chimera_data[k] = {column: [] for column in columns}
+            chimera_data[k] = {field: [] for field in fields}
             lefts, rights = [], []
 
             with (chimera_dir / f'data.l{k}.txt').open() as f:
-                lines = f.readlines()
-
-                for l in lines:
+                for l in f.readlines():
                     fields = l.rstrip('\n').split('\t')
                     probe = fields[2].split(',')
                     nonce = fields[0]
@@ -38,17 +34,17 @@ class Chimeras:
                         lefts += [dictionary.sent2idx(sent[:idx])]
                         rights += [dictionary.sent2idx(sent[idx + 1:])]
 
-                    chimera_data[k]['ground_truth_vector'] += [w2v.wv[correct[nonce][0]]]
-                    chimera_data[k]['target_word'] += [correct[nonce][0]]
+                    chimera_data[k]['pivot_vector'] += [w2v.wv[correct[nonce][0]]]
+                    chimera_data[k]['pivot'] += [correct[nonce][0]]
                     chimera_data[k]['character'] += [[char2idx[c] for c in correct[nonce][0] if c in char2idx]]
                     chimera_data[k]['probes'] += [probe]
                     chimera_data[k]['scores'] += [score]
                     chimera_data[k]['text'] += [sents]
 
-            lefts = pad_sequences(lefts, max_len=ctx_len, value=pad, padding='pre', truncating='pre')
-            rights = pad_sequences(rights, max_len=ctx_len, value=pad, padding='post', truncating='post')
+            lefts = pad_sequences(lefts, max_len=ctx_len, pad=pad, pre=True)
+            rights = pad_sequences(rights, max_len=ctx_len, pad=pad, pre=False)
             chimera_data[k]['contexts'] = np.concatenate((lefts, rights), axis=1).reshape(-1, k, 2*ctx_len)
-            chimera_data[k]['character'] = pad_sequences(chimera_data[k]['character'], max_len=ctx_len)
+            chimera_data[k]['character'] = pad_sequences(chimera_data[k]['character'], max_len=ctx_len, pre=True)
 
         self.chimera_data = chimera_data
         self.w2v = w2v
@@ -68,7 +64,7 @@ class Chimeras:
                 data = self.chimera_data[k_shot]
 
                 test_contexts = torch.tensor(data['contexts'], dtype=torch.long).to(device)
-                test_targets = torch.tensor(data['ground_truth_vector'], dtype=torch.float).to(device)
+                test_targets = torch.tensor(data['pivot_vector'], dtype=torch.float).to(device)
                 test_vocabs = torch.tensor(data['character'], dtype=torch.long).to(device)
 
                 test_pred = model.forward(test_contexts, test_vocabs)
@@ -86,7 +82,7 @@ class Chimeras:
 
                 inds = np.argsort(spearman_correlations)
                 for i in inds:
-                    wl = [data['target_word'][i], data['text'][i], spearman_correlations[i], data['probes'][i]]
+                    wl = [data['pivot'][i], data['text'][i], spearman_correlations[i], data['probes'][i]]
                     results[k_shot].append(wl)
 
         return results
@@ -99,7 +95,7 @@ class Chimeras:
 
         for k_shot in shots:
             data = self.chimera_data[k_shot]
-            pred = data['ground_truth_vector']
+            pred = data['pivot_vector']
 
             spearman_correlations = []
             probe_vecs = [[self.w2v.wv[pi] for pi in probe] for probe in data["probes"]]
