@@ -34,6 +34,7 @@ class Chimeras:
                         lefts += [dictionary.sent2idx(sent[:idx])]
                         rights += [dictionary.sent2idx(sent[idx + 1:])]
 
+                    print(chimera_data[k])
                     chimera_data[k]['pivot_vector'] += [w2v.wv[correct[nonce][0]]]
                     chimera_data[k]['pivot'] += [correct[nonce][0]]
                     chimera_data[k]['character'] += [[char2idx[c] for c in correct[nonce][0] if c in char2idx]]
