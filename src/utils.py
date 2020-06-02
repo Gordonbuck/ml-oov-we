@@ -29,7 +29,7 @@ class Dictionary(object):
 
 
 def pad_sequences(sequences, max_len, pre=True, pad=0):
-    x = np.full((len(sequences), max_len), pad, dtype=np.int32)
+    x = np.full((len(sequences), max_len), pad, dtype=np.int64)
     for idx, s in enumerate(sequences):
         if not len(s):
             continue
