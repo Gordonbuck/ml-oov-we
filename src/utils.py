@@ -28,8 +28,8 @@ class Dictionary(object):
         return [self.word2idx[w] if w in self.word2idx else 0 for w in x]
 
 
-def pad_sequences(sequences, max_len, pre=True, pad=0.):
-    x = np.full((len(sequences), max_len), pad)
+def pad_sequences(sequences, max_len, pre=True, pad=0):
+    x = np.full((len(sequences), max_len), pad, dtype=np.int32)
     for idx, s in enumerate(sequences):
         if not len(s):
             continue
