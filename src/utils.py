@@ -31,6 +31,8 @@ class Dictionary(object):
 def pad_sequences(sequences, max_len, pre=True, pad=0.):
     x = np.full((len(sequences), max_len), pad)
     for idx, s in enumerate(sequences):
+        if not len(s):
+            continue
         if pre:
             x[idx, -min(max_len, len(s)):] = np.array(s[-max_len:])
         else:
