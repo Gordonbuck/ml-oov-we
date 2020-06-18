@@ -22,13 +22,12 @@ def write_word_vecs(model, corpus, k_shot, char2idx, device, oov_wv_dir, model_n
     corpus.w2v.wv.save_word2vec_format(os.path.join(oov_wv_dir, f'oov_w2v_{model_name}'))
 
 
-def preprocess_jnlpba(jnlpba_dir, corpus, k_shot):
+def preprocess_jnlpba(jnlpba_dir, corpus, k_shot, p_dev=0.05):
     train = 0
     dev = 1
     train_size = 0
     dev_size = 0
     test_size = 0
-    p_dev = 0.0
 
     print("Writing JNLPBA train and dev files")
     with (jnlpba_dir / "train.txt").open(mode='w+') as f_train:
